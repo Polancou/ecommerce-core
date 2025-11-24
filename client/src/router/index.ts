@@ -10,6 +10,7 @@ const SecurityView = () => import('@/views/SecurityView.vue')
 const AdminView = () => import('@/views/AdminView.vue')
 const ForgotPasswordView = () => import('@/views/ForgotPasswordView.vue')
 const ResetPasswordView = () => import('@/views/ResetPasswordView.vue')
+const ShopView = () => import('@/views/ShopView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -57,6 +58,11 @@ const router = createRouter({
           path: 'profile',
           name: 'profile',
           component: ProfileView
+        },
+        {
+          path: 'shop',
+          name: 'shop',
+          component: ShopView
         },
         {
           path: 'security',

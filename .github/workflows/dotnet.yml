@@ -81,14 +81,14 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restaurar Dependencias
-        run: dotnet restore AccountPanel/AccountPanel.sln
+        run: dotnet restore EcommerceCore/EcommerceCore.sln
 
       - name: Compilar (Build)
-        run: dotnet build AccountPanel/AccountPanel.sln --no-restore --configuration Release
+        run: dotnet build EcommerceCore/EcommerceCore.sln --no-restore --configuration Release
 
       - name: Ejecutar Tests (Unitarios e Integración)
         # Ejecuta los tests conectándose al servicio 'sql-edge' definido arriba
-        run: dotnet test AccountPanel/AccountPanel.sln --no-build --configuration Release --verbosity normal
+        run: dotnet test EcommerceCore/EcommerceCore.sln --no-build --configuration Release --verbosity normal
         env:
           # Connection String para los tests de integración (apunta a localhost del runner)
           ConnectionStrings__TestConnection: "Server=localhost,1433;Database=master;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"

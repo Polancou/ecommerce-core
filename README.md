@@ -1,4 +1,4 @@
-# 🧩 AccountPanel: Aplicación Full-Stack de Panel de Cuentas
+# 🧩 EcommerceCore: Aplicación Full-Stack de Panel de Cuentas
 
 Un proyecto full-stack moderno y robusto que combina un backend en **.NET 9** con **Arquitectura Limpia** y un frontend **SPA** reactivo construido con **Vue.js 3**, **TypeScript** y **Tailwind CSS**.
 
@@ -97,7 +97,7 @@ Si prefieres ejecutar los servicios individualmente en tu máquina para depurar.
 ### 1\. Configurar Backend
 
 ```bash
-cd AccountPanel/AccountPanel.Api
+cd EcommerceCore/EcommerceCore.Api
 dotnet user-secrets init
 # Configura tus secretos (Ver sección de secretos abajo)
 dotnet run
@@ -117,7 +117,7 @@ npm run dev
 Para que el backend funcione localmente sin Docker, configura los secretos:
 
 ```bash
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=accountpanel_db;User Id=sa;Password=TuPasswordFuerte!;TrustServerCertificate=True;"
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=EcommerceCore_db;User Id=sa;Password=TuPasswordFuerte!;TrustServerCertificate=True;"
 dotnet user-secrets set "Jwt:Key" "SUPER_SECRET_KEY_MIN_64_CHARS_LONG_FOR_HMAC_SHA512"
 dotnet user-secrets set "Authentication:Google:ClientId" "TU_CLIENT_ID"
 dotnet user-secrets set "Authentication:Google:ClientSecret" "TU_CLIENT_SECRET"
@@ -138,7 +138,7 @@ El proyecto incluye una suite robusta de pruebas unitarias y de integración. La
 ### ✅ Backend
 
 ```bash
-cd AccountPanel
+cd EcommerceCore
 dotnet test
 ```
 

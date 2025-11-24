@@ -93,3 +93,23 @@ export interface ApiErrorResponse {
   statusCode: number;
   traceId: string;
 }
+
+// DTO para productos
+export interface ProductDto {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  imageUrl?: string;
+  category?: string;
+}
+
+// Interfaz para items del carrito (Frontend)
+export interface CartItem {
+  productId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl?: string;
+}
