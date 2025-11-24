@@ -34,6 +34,9 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IExternalAuthValidator, GoogleAuthValidator>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
@@ -50,10 +53,7 @@ builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequir
 
 // --- Configuración de Controladores y Mapeo ---
 builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 // AutoMapper buscará perfiles en todos los ensamblados de la aplicación.
 builder.Services.AddAutoMapper(cfg => cfg.LicenseKey = builder.Configuration["AutoMapper:Key"],
     AppDomain.CurrentDomain.GetAssemblies());
@@ -66,10 +66,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: "ClientPermission",
         policy =>
         {
-            policy.WithOrigins(frontendUrl) 
+            policy.WithOrigins(frontendUrl)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowCredentials();     
+                .AllowCredentials();
         });
 });
 
@@ -87,7 +87,7 @@ builder.Services.AddRateLimiter(options =>
     {
         opt.Window = TimeSpan.FromSeconds(60);
         opt.PermitLimit = authPermitLimit;
-        opt.QueueLimit = 0; 
+        opt.QueueLimit = 0;
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
     });
 
@@ -114,17 +114,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt Key no configurado"))),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ??
+                                                                               throw new InvalidOperationException(
+                                                                                   "Jwt Key no configurado"))),
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Jwt Issuer no configurado"),
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ??
+                          throw new InvalidOperationException("Jwt Issuer no configurado"),
             ValidateAudience = false
         };
     })
     .AddGoogle(options =>
     {
         var googleAuthNSection = builder.Configuration.GetSection("Authentication:Google");
-        options.ClientId = googleAuthNSection["ClientId"] ?? throw new InvalidOperationException("Google ClientId no encontrado");
-        options.ClientSecret = googleAuthNSection["ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret no configurado");
+        options.ClientId = googleAuthNSection["ClientId"] ??
+                           throw new InvalidOperationException("Google ClientId no encontrado");
+        options.ClientSecret = googleAuthNSection["ClientSecret"] ??
+                               throw new InvalidOperationException("Google ClientSecret no configurado");
     });
 
 // --- Configuración de Versionado de API ---
@@ -174,7 +179,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors(policyName: "ClientPermission");
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | 
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
                        Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
 });
 app.UseStaticFiles();

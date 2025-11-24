@@ -37,12 +37,18 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     /// </summary>
     public virtual DbSet<UserLogin> UserLogins { get; set; }
 
+    public virtual DbSet<Product> Products { get; set; }
+    public virtual DbSet<Order> Orders { get; set; }
+    public virtual DbSet<OrderItem> OrderItems { get; set; }
+    public virtual DbSet<Cart> Carts { get; set; }
+    public virtual DbSet<CartItem> CartItems { get; set; }
+
     public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         // Inicia una nueva transacción de base de datos
         return await Database.BeginTransactionAsync(cancellationToken);
     }
-    
+
     /// <summary>
     /// Se invoca cuando el modelo para un contexto derivado está siendo creado.
     /// Este método permite una configuración más detallada del modelo de base de datos
@@ -60,7 +66,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         // Por ejemplo, no puede haber dos inicios de sesión de 'Google' con el mismo ID de usuario de Google.
         modelBuilder.Entity<UserLogin>()
             .HasKey(l => new { l.LoginProvider, l.ProviderKey });
-        
+
         // Configuración para la entidad Usuario
         var usuarioEntity = modelBuilder.Entity<Usuario>();
 
@@ -68,5 +74,19 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         // SQL Server entiende esto nativamente
         usuarioEntity.Property(u => u.RowVersion)
             .IsRowVersion();
+
+        // Configuración de Order
+        modelBuilder.Entity<Order>()
+            .HasMany(o => o.Items)
+            .WithOne(i => i.Order)
+            .HasForeignKey(i => i.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configuración de Cart
+        modelBuilder.Entity<Cart>()
+            .HasMany(c => c.Items)
+            .WithOne(i => i.Cart)
+            .HasForeignKey(i => i.CartId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
