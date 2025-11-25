@@ -4,7 +4,7 @@ services:
   # ---------------------------------------
   db:
     image: mcr.microsoft.com/azure-sql-edge:latest
-    container_name: accountpanel-db
+    container_name: EcommerceCore-db
     user: "root"
     environment:
       - ACCEPT_EULA=Y
@@ -21,13 +21,13 @@ services:
   # ---------------------------------------
   api:
     build:
-      context: ./AccountPanel
+      context: ./EcommerceCore
       dockerfile: Dockerfile
-    container_name: accountpanel-api
+    container_name: EcommerceCore-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       # Cadena de conexión apuntando al servicio 'db' en lugar de localhost
-      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=accountpanel_db;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=EcommerceCore_db;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
       # Configuración JWT (debe coincidir con secrets o ser inyectada)
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=http://localhost:5272
@@ -43,6 +43,8 @@ services:
       - SmtpSettings__Password=${SMTP_PASSWORD}
       - SmtpSettings__FromEmail=${SMTP_FROM_EMAIL}
       - SmtpSettings__FromName=${SMTP_FROM_NAME}
+      # Configuración Stripe
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
     ports:
       - "5272:8080" # Mapeamos el puerto interno 8080 al 5272 de tu máquina
     volumes:
@@ -65,7 +67,8 @@ services:
         - VITE_API_BASE_URL=http://localhost:5272/api
         - VITE_UPLOADS_BASE_URL=http://localhost:5272
         - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-change_me}
-    container_name: accountpanel-web
+        - VITE_STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+    container_name: EcommerceCore-web
     ports:
       - "5173:80"
     depends_on:

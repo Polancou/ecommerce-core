@@ -7,9 +7,10 @@ const LoginView = () => import('@/views/LoginView.vue')
 const RegisterView = () => import('@/views/RegisterView.vue')
 const ProfileView = () => import('@/views/ProfileView.vue')
 const SecurityView = () => import('@/views/SecurityView.vue')
-const AdminView = () => import('@/views/AdminView.vue')
 const ForgotPasswordView = () => import('@/views/ForgotPasswordView.vue')
 const ResetPasswordView = () => import('@/views/ResetPasswordView.vue')
+const ShopView = () => import('@/views/ShopView.vue')
+const CheckoutView = () => import('@/views/CheckoutView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,15 +60,46 @@ const router = createRouter({
           component: ProfileView
         },
         {
+          path: 'shop',
+          name: 'shop',
+          component: ShopView
+        },
+        {
           path: 'security',
           name: 'security',
           component: SecurityView
         },
         {
           path: 'admin',
-          name: 'admin',
-          component: AdminView,
-          meta: { requiresAuth: true, requiresAdmin: true }
+          component: () => import('@/layouts/AdminLayout.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true },
+          children: [
+            {
+              path: '',
+              name: 'admin-dashboard',
+              component: () => import('@/views/admin/AdminDashboardView.vue')
+            },
+            {
+              path: 'products',
+              name: 'admin-products',
+              component: () => import('@/views/admin/AdminProductsView.vue')
+            },
+            {
+              path: 'products/:id', // 'new' or ID
+              name: 'admin-product-form',
+              component: () => import('@/views/admin/AdminProductForm.vue')
+            },
+            {
+              path: 'orders',
+              name: 'admin-orders',
+              component: () => import('@/views/admin/AdminOrdersView.vue')
+            }
+          ]
+        },
+        {
+          path: 'checkout',
+          name: 'checkout',
+          component: CheckoutView
         }
       ]
     },
