@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
+import { useDark } from '@vueuse/core';
 import apiClient from '@/services/api';
 import { useCartStore } from '@/stores/cart';
 import { toast } from 'vue-sonner';
@@ -20,6 +21,8 @@ const stripe = ref<Stripe | null>(null);
 const elements = ref<StripeElements | null>(null);
 const paymentElement = ref<StripePaymentElement | null>(null);
 
+const isDark = useDark();
+
 onMounted(async () => {
     if (cartStore.items.length === 0) {
         toast.error("El carrito está vacío");
@@ -37,7 +40,8 @@ onMounted(async () => {
         stripe.value = await stripePromise;
         if (!stripe.value) return;
 
-        const appearance: { theme: 'night', labels: 'floating' } = { theme: 'night', labels: 'floating' };
+        const theme = isDark.value ? 'night' : 'stripe';
+        const appearance: { theme: 'night' | 'stripe', labels: 'floating' } = { theme, labels: 'floating' };
         elements.value = stripe.value.elements({ clientSecret: clientSecret.value, appearance });
 
         paymentElement.value = elements.value.create('payment');
@@ -47,6 +51,13 @@ onMounted(async () => {
         toast.error("Error al iniciar el pago");
     } finally {
         loading.value = false;
+    }
+});
+
+// Watch for theme changes and update Stripe Elements
+watch(isDark, (newVal) => {
+    if (elements.value) {
+        elements.value.update({ appearance: { theme: newVal ? 'night' : 'stripe', labels: 'floating' } });
     }
 });
 
@@ -73,14 +84,15 @@ const handleSubmit = async () => {
 
 <template>
     <div class="container mx-auto px-4 py-8 max-w-lg">
-        <h1 class="text-2xl font-bold mb-6 text-white">Checkout</h1>
+        <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Checkout</h1>
 
-        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-colors duration-300">
             <div class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-300 mb-2">Resumen del Pedido</h2>
-                <div class="flex justify-between text-gray-400">
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Resumen del Pedido</h2>
+                <div class="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Total a Pagar:</span>
-                    <span class="text-white font-bold text-xl">${{ cartStore.totalPrice.toFixed(2) }}</span>
+                    <span class="text-gray-900 dark:text-white font-bold text-xl">${{ cartStore.totalPrice.toFixed(2)
+                        }}</span>
                 </div>
             </div>
 
