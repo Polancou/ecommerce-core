@@ -100,4 +100,53 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         var orders = await response.Content.ReadFromJsonAsync<List<OrderDto>>(_jsonOptions);
         orders.Should().HaveCount(1);
     }
+
+    [Fact]
+    public async Task UpdateOrderStatus_AsAdmin_ShouldUpdateStatus()
+    {
+        // Arrange
+        var (_, productId) = await SetupUserAndProductAsync();
+
+        // Create order as User
+        await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
+            new AddToCartDto { ProductId = productId, Quantity = 1 });
+        var createResponse = await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+        var order = await createResponse.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
+
+        // Login as Admin
+        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin", "admin@test.com", RolUsuario.Admin);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        // Act
+        var updateDto = new UpdateOrderStatusDto { Status = OrderStatus.Shipped };
+        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/orders/{order!.Id}/status", updateDto);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Verify update
+        var getResponse = await _client.GetAsync($"/api/{ApiVersion}/orders/{order.Id}");
+        var updatedOrder = await getResponse.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
+        updatedOrder!.Status.Should().Be(OrderStatus.Shipped);
+    }
+
+    [Fact]
+    public async Task UpdateOrderStatus_AsUser_ShouldReturnForbidden()
+    {
+        // Arrange
+        var (userToken, productId) = await SetupUserAndProductAsync();
+
+        // Create order
+        await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
+            new AddToCartDto { ProductId = productId, Quantity = 1 });
+        var createResponse = await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+        var order = await createResponse.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
+
+        // Act (Try to update as User)
+        var updateDto = new UpdateOrderStatusDto { Status = OrderStatus.Shipped };
+        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/orders/{order!.Id}/status", updateDto);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
 }

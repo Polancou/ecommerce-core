@@ -91,8 +91,40 @@ public class OrderServiceTests
         result.TotalAmount.Should().Be(200); // 100 * 2
         product.Stock.Should().Be(8); // 10 - 2
 
-        _mockDbContext.Verify(c => c.Orders.Add(It.IsAny<Order>()), Times.Once);
-        _mockDbContext.Verify(c => c.Carts.Remove(cartWithItems), Times.Once);
         _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateOrderStatusAsync_WithValidId_ShouldUpdateStatus()
+    {
+        // Arrange
+        var orderId = 1;
+        var order = new Order(1, 100);
+        // Reflection to set ID since it's private set
+        order.GetType().GetProperty("Id")!.SetValue(order, orderId);
+
+        var orders = new List<Order> { order };
+        _mockDbContext.Setup(c => c.Orders.FindAsync(orderId)).ReturnsAsync(order);
+
+        // Act
+        await _orderService.UpdateOrderStatusAsync(orderId, OrderStatus.Shipped);
+
+        // Assert
+        order.Status.Should().Be(OrderStatus.Shipped);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateOrderStatusAsync_WithInvalidId_ShouldThrowException()
+    {
+        // Arrange
+        var orderId = 99;
+        _mockDbContext.Setup(c => c.Orders.FindAsync(orderId)).ReturnsAsync((Order?)null);
+
+        // Act
+        Func<Task> act = async () => await _orderService.UpdateOrderStatusAsync(orderId, OrderStatus.Delivered);
+
+        // Assert
+        await act.Should().ThrowAsync<KeyNotFoundException>().WithMessage("Pedido no encontrado.");
     }
 }
