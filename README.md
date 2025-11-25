@@ -1,6 +1,6 @@
-# 🧩 EcommerceCore: Aplicación Full-Stack de Panel de Cuentas
+# 🧩 EcommerceCore: Plataforma de Comercio Electrónico Full-Stack
 
-Un proyecto full-stack moderno y robusto que combina un backend en **.NET 9** con **Arquitectura Limpia** y un frontend **SPA** reactivo construido con **Vue.js 3**, **TypeScript** y **Tailwind CSS**.
+Una tienda en línea moderna y robusta con integración de pagos vía **Stripe**, gestión de roles y usuarios. Combina un backend en **.NET 9** con **Arquitectura Limpia** y un frontend **SPA** reactivo construido con **Vue.js 3**, **TypeScript** y **Tailwind CSS**.
 
 Este proyecto va más allá de lo básico, implementando estándares de seguridad de grado empresarial, optimizaciones de rendimiento y una experiencia de desarrollador totalmente dockerizada.
 
