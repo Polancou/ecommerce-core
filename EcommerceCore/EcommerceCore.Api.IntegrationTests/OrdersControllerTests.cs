@@ -1,0 +1,103 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using EcommerceCore.Application.DTOs;
+using EcommerceCore.Domain.Models;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace EcommerceCore.Api.IntegrationTests;
+
+public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
+{
+    private readonly TestApiFactory _factory;
+    private readonly HttpClient _client;
+    private const string ApiVersion = "v1";
+    private readonly JsonSerializerOptions _jsonOptions;
+
+    public OrdersControllerTests(TestApiFactory factory)
+    {
+        _factory = factory;
+        _client = factory.CreateClient();
+        _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        _jsonOptions.Converters.Add(new JsonStringEnumConverter());
+    }
+
+    public async Task InitializeAsync() => await _factory.ResetDatabaseAsync();
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    private async Task<(string Token, int ProductId)> SetupUserAndProductAsync()
+    {
+        var (_, token) = await _factory.CreateUserAndGetTokenAsync("User", "user@test.com", RolUsuario.User);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider
+            .GetRequiredService<EcommerceCore.Infrastructure.Data.ApplicationDbContext>();
+        var product = new Product("Test Prod", "Desc", 100, 10, "url", "Cat");
+        context.Products.Add(product);
+        await context.SaveChangesAsync();
+
+        return (token, product.Id);
+    }
+
+    [Fact]
+    public async Task CreateOrder_WithValidCart_ShouldReturnCreated()
+    {
+        // Arrange
+        var (token, productId) = await SetupUserAndProductAsync();
+
+        // Add item to cart
+        await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
+            new AddToCartDto { ProductId = productId, Quantity = 2 });
+
+        // Act
+        var response = await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var order = await response.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
+        order.Should().NotBeNull();
+        order.TotalAmount.Should().Be(200); // 100 * 2
+        order.Items.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task CreateOrder_WithEmptyCart_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var (token, _) = await SetupUserAndProductAsync();
+        // Cart is empty by default
+
+        // Act
+        var response = await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetUserOrders_ShouldReturnList()
+    {
+        // Arrange
+        var (token, productId) = await SetupUserAndProductAsync();
+
+        // Create an order first
+        await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
+            new AddToCartDto { ProductId = productId, Quantity = 1 });
+        await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+
+        // Act
+        var response = await _client.GetAsync($"/api/{ApiVersion}/orders");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var orders = await response.Content.ReadFromJsonAsync<List<OrderDto>>(_jsonOptions);
+        orders.Should().HaveCount(1);
+    }
+}

@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import apiClient from '@/services/api';
 import router from '@/router'
+import { useCartStore } from './cart';
 import type {
   LoginUsuarioDto, RegistroUsuarioDto, PerfilUsuarioDto, ActualizarPerfilDto,
   CambiarPasswordDto, JwtPayload, ForgotPasswordDto, ResetPasswordDto,
@@ -52,6 +53,10 @@ export const useAuthStore = defineStore('auth', () => {
       const { accessToken } = response.data
       setAuthState(accessToken)
 
+      // Sincronizar carrito
+      const cartStore = useCartStore();
+      await cartStore.syncCart();
+
       toast.success('Sesión iniciada correctamente');
       router.push({ name: 'profile' })
     } catch (err: unknown) {
@@ -93,6 +98,9 @@ export const useAuthStore = defineStore('auth', () => {
     userRole.value = null
     isLoading.value = false
     error.value = null
+
+    const cartStore = useCartStore();
+    cartStore.clearCart();
   }
 
   /**
@@ -248,7 +256,7 @@ export const useAuthStore = defineStore('auth', () => {
     // No hay token en memoria
     if (!token.value) {
       // Intentamos recuperar la sesión usando la cookie
-      const success = await refreshAccessToken();
+      await refreshAccessToken();
       // No importa si falla (return false), el usuario simplemente sigue deslogueado.
     }
     // Hay un token persistido (por configuración o recarga rápida)
