@@ -73,6 +73,11 @@ public class Order
     {
         Status = OrderStatus.Paid;
     }
+
+    public void UpdateStatus(OrderStatus newStatus)
+    {
+        Status = newStatus;
+    }
 }
 
 /// <summary>

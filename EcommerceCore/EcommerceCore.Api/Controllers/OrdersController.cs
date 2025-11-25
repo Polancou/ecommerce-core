@@ -69,4 +69,26 @@ public class OrdersController(IOrderService orderService) : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    /// <summary>
+    /// Actualiza el estado de un pedido (Requiere rol Admin).
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDto dto)
+    {
+        try
+        {
+            await orderService.UpdateOrderStatusAsync(id, dto.Status);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

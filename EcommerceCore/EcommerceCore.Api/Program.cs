@@ -37,6 +37,7 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();

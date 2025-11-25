@@ -18,8 +18,17 @@ Este proyecto va más allá de lo básico, implementando estándares de segurida
 ### 🏗️ Arquitectura & Backend
 * **Arquitectura Limpia (Clean Architecture):** Separación estricta de responsabilidades (`Domain`, `Application`, `Infrastructure`, `Api`).
 * **Abstracción de Servicios:** Implementación desacoplada para Almacenamiento (`IFileStorageService`) y Email (`IEmailService`), permitiendo cambiar entre Local/S3 o Mailtrap/AWS SES sin tocar la lógica de negocio.
-* **Health Checks:** Endpoint `/health` para monitoreo de estado en orquestadores.
-* **Entity Framework Core 9:** Con SQL Server y manejo de concurrencia optimista (`RowVersion`).
+*   **Health Checks:** Endpoint `/health` para monitoreo de estado en orquestadores.
+*   **Entity Framework Core 9:** Con SQL Server y manejo de concurrencia optimista (`RowVersion`).
+*   **Pagos Seguros:** Integración completa con **Stripe** (Payment Intents) para procesamiento de pagos seguro y cumplimiento PCI.
+
+### 🛍️ E-commerce & Admin
+*   **Carrito de Compras:** Sincronización inteligente entre frontend y backend. Persistencia en base de datos para usuarios logueados.
+*   **Panel de Administración:**
+    *   **Dashboard:** Vista general del estado de la tienda.
+    *   **Gestión de Productos:** CRUD completo con soporte para imágenes.
+    *   **Gestión de Pedidos:** Visualización y actualización de estados (Pendiente -> Enviado -> Entregado).
+    *   **Seguridad:** Rutas protegidas por Roles (`Admin`).
 
 ### 🎨 Frontend (UX/UI)
 * **TypeScript Estricto:** Código tipado rigurosamente (sin `any`) para mayor mantenibilidad.
@@ -46,6 +55,7 @@ El proyecto utiliza un archivo `.env` en la raíz para inyectar secretos en los 
 2.  Abre el archivo `.env` y define tus credenciales.
     * **SA_PASSWORD:** Debe ser fuerte (Mayúsculas, minúsculas, números) o SQL Server no iniciará.
     * **SMTP:** Configura tus credenciales (Gmail, AWS SES, Mailtrap) para probar los correos.
+    *   **STRIPE:** Configura `STRIPE_SECRET_KEY` (Backend) y `STRIPE_PUBLIC_KEY` (Frontend) para habilitar pagos.
 
 ### 3. Levantar la Aplicación
 Desde la raíz del proyecto:
@@ -68,15 +78,16 @@ Las migraciones se aplican **automáticamente** al iniciar el contenedor de la A
 
 ## ✨ Stack Tecnológico Detallado
 
-### ⚙️ **Backend (.NET / C\#)**
+### ⚙️ **Backend (.NET / C#)**
 
-- **Framework:** .NET 9 (C\# 13)
+- **Framework:** .NET 9 (C# 13)
 - **Base de Datos:** SQL Server (Azure SQL Edge en Docker)
 - **ORM:** Entity Framework Core 9
 - **Auth:** JWT (Bearer) + Cookies HttpOnly + Google OAuth 2.0
 - **Validación:** FluentValidation
-- **Logging:** Serilog
-- **Testing:** xUnit, Moq, FluentAssertions, WebApplicationFactory (Integration Tests)
+-   **Logging:** Serilog
+-   **Pagos:** Stripe.net
+-   **Testing:** xUnit, Moq, FluentAssertions, WebApplicationFactory (Integration Tests)
 
 ### 🖥️ **Frontend (Vue.js / TypeScript)**
 
@@ -85,8 +96,9 @@ Las migraciones se aplican **automáticamente** al iniciar el contenedor de la A
 - **Estilos:** Tailwind CSS v4 + @tailwindcss/forms
 - **Estado:** Pinia + pinia-plugin-persistedstate
 - **HTTP:** Axios (con interceptores para Refresh Token automático)
-- **Validación:** Vee-Validate + Zod
-- **Testing:** Vitest
+-   **Validación:** Vee-Validate + Zod
+-   **Pagos:** @stripe/stripe-js
+-   **Testing:** Vitest
 
 -----
 
@@ -127,6 +139,8 @@ dotnet user-secrets set "SmtpSettings:Port" "587"
 dotnet user-secrets set "SmtpSettings:Username" "TU_USER"
 dotnet user-secrets set "SmtpSettings:Password" "TU_PASS"
 dotnet user-secrets set "SmtpSettings:FromEmail" "no-reply@tuapp.com"
+# Configuración Stripe
+dotnet user-secrets set "Stripe:SecretKey" "sk_test_..."
 ```
 
 -----
