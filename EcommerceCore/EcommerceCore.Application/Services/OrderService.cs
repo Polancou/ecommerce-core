@@ -31,7 +31,8 @@ public class OrderService(IApplicationDbContext context) : IOrderService
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return null;
-        if (order.UserId != userId && !isAdmin) throw new UnauthorizedAccessException("No tienes permiso para ver este pedido.");
+        if (order.UserId != userId && !isAdmin)
+            throw new UnauthorizedAccessException("No tienes permiso para ver este pedido.");
 
         return MapToDto(order);
     }
@@ -53,9 +54,10 @@ public class OrderService(IApplicationDbContext context) : IOrderService
 
         foreach (var cartItem in cart.Items)
         {
-            var orderItem = new OrderItem(cartItem.ProductId, cartItem.Product.Name, cartItem.Product.Price, cartItem.Quantity);
+            var orderItem = new OrderItem(cartItem.ProductId, cartItem.Product.Name, cartItem.Product.Price,
+                cartItem.Quantity);
             order.AddItem(orderItem);
-            
+
             // Reducir stock
             cartItem.Product.UpdateStock(-cartItem.Quantity);
         }
@@ -66,6 +68,15 @@ public class OrderService(IApplicationDbContext context) : IOrderService
         await context.SaveChangesAsync();
 
         return MapToDto(order);
+    }
+
+    public async Task UpdateOrderStatusAsync(int orderId, OrderStatus newStatus)
+    {
+        var order = await context.Orders.FindAsync(orderId);
+        if (order == null) throw new KeyNotFoundException("Pedido no encontrado.");
+
+        order.UpdateStatus(newStatus);
+        await context.SaveChangesAsync();
     }
 
     private static OrderDto MapToDto(Order order)

@@ -105,6 +105,24 @@ export interface ProductDto {
   category?: string;
 }
 
+export interface CreateProductDto {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  imageUrl?: string;
+  category?: string;
+}
+
+export interface UpdateProductDto {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  imageUrl?: string;
+  category?: string;
+}
+
 // Interfaz para items del carrito (Frontend)
 export interface CartItem {
   productId: number;
@@ -112,4 +130,36 @@ export interface CartItem {
   price: number;
   quantity: number;
   imageUrl?: string;
+}
+
+// DTOs del Backend para el Carrito
+export interface CartItemDto {
+  productId: number;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+}
+
+export interface OrderItemDto {
+  productId: number;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+export interface OrderDto {
+  id: number;
+  orderDate: string;
+  totalAmount: number;
+  status: string;
+  items: OrderItemDto[];
+}
+
+
+export interface CartDto {
+  id: number;
+  userId: number;
+  items: CartItemDto[];
+  totalPrice: number;
 }

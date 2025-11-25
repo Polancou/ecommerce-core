@@ -32,6 +32,23 @@ public class CartService(IApplicationDbContext context) : ICartService
         return MapToDto(cart!);
     }
 
+    public async Task<CartDto> UpdateItemQuantityAsync(int userId, int productId, int quantity)
+    {
+        var cart = await GetCartEntityAsync(userId);
+        if (cart == null) throw new KeyNotFoundException("Carrito no encontrado.");
+
+        var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+        if (item != null)
+        {
+            item.UpdateQuantity(quantity);
+            await context.SaveChangesAsync();
+        }
+
+        // Refetch
+        cart = await GetCartEntityAsync(userId);
+        return MapToDto(cart!);
+    }
+
     public async Task<CartDto> RemoveItemAsync(int userId, int productId)
     {
         var cart = await GetCartEntityAsync(userId);

@@ -47,6 +47,24 @@ public class CartController(ICartService cartService) : ControllerBase
     }
 
     /// <summary>
+    /// Actualiza la cantidad de un ítem en el carrito.
+    /// </summary>
+    [HttpPut("items")]
+    public async Task<ActionResult<CartDto>> UpdateItem([FromBody] AddToCartDto itemDto)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        try
+        {
+            var cart = await cartService.UpdateItemQuantityAsync(userId, itemDto.ProductId, itemDto.Quantity);
+            return Ok(cart);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
     /// Elimina un ítem del carrito.
     /// </summary>
     [HttpDelete("items/{productId}")]
