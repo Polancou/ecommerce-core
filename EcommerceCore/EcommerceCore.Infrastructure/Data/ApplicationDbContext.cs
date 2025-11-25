@@ -42,6 +42,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public virtual DbSet<OrderItem> OrderItems { get; set; }
     public virtual DbSet<Cart> Carts { get; set; }
     public virtual DbSet<CartItem> CartItems { get; set; }
+    public virtual DbSet<ShippingAddress> ShippingAddresses { get; set; }
 
     public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

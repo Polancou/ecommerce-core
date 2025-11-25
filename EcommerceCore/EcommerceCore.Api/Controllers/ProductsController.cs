@@ -15,9 +15,11 @@ public class ProductsController(IProductService productService) : ControllerBase
     /// Obtiene la lista completa de productos.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
+    public async Task<ActionResult<PaginatedResult<ProductDto>>> GetProducts([FromQuery] string? search,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        return Ok(await productService.GetAllAsync());
+        var products = await productService.GetAllAsync(search, page, pageSize);
+        return Ok(products);
     }
 
     /// <summary>
@@ -80,6 +82,30 @@ public class ProductsController(IProductService productService) : ControllerBase
         {
             await productService.DeleteAsync(id);
             return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Sube una imagen para un producto (Requiere rol Admin).
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/image")]
+    public async Task<IActionResult> UploadProductImage(int id, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "No se ha proporcionado ningún archivo." });
+
+        if (file.Length > 1024 * 1024 * 5) // 5MB limit
+            return BadRequest(new { message = "El archivo debe ser menor a 5 MB." });
+
+        try
+        {
+            var imageUrl = await productService.UploadImageAsync(id, file);
+            return Ok(new { imageUrl });
         }
         catch (KeyNotFoundException)
         {

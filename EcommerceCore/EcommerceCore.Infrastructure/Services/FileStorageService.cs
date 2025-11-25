@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace EcommerceCore.Infrastructure.Services;
 
-public class LocalFileStorageService(IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor) : IFileStorageService
+public class LocalFileStorageService(IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
+    : IFileStorageService
 {
     private const string ContainerName = "uploads/avatars";
 
@@ -12,13 +13,13 @@ public class LocalFileStorageService(IWebHostEnvironment env, IHttpContextAccess
     {
         // 1. Definir la ruta física en el servidor
         var uploadsPath = Path.Combine(env.WebRootPath, ContainerName);
-
-        if (!Directory.Exists(uploadsPath))
-        {
-            Directory.CreateDirectory(uploadsPath);
-        }
-
         var filePath = Path.Combine(uploadsPath, fileName);
+        var directoryPath = Path.GetDirectoryName(filePath);
+
+        if (directoryPath != null && !Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
 
         // 2. Guardar el archivo físicamente
         using (var outputStream = new FileStream(filePath, FileMode.Create))
@@ -29,7 +30,7 @@ public class LocalFileStorageService(IWebHostEnvironment env, IHttpContextAccess
         // 3. Retornar la URL relativa
         return $"/{ContainerName}/{fileName}";
     }
-    
+
     /// <summary>
     /// Deletes a file from the file system based on its relative path.
     /// </summary>
