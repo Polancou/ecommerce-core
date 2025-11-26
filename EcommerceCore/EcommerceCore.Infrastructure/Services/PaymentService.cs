@@ -10,7 +10,8 @@ public class PaymentService : IPaymentService
 
     public PaymentService(IConfiguration configuration)
     {
-        _secretKey = configuration["Stripe:SecretKey"] ?? throw new InvalidOperationException("Stripe SecretKey not found.");
+        _secretKey = configuration[key: "Stripe:SecretKey"] ??
+                     throw new InvalidOperationException(message: "Stripe SecretKey not found.");
         StripeConfiguration.ApiKey = _secretKey;
     }
 
@@ -27,8 +28,15 @@ public class PaymentService : IPaymentService
         };
 
         var service = new PaymentIntentService();
-        var paymentIntent = await service.CreateAsync(options);
+        var paymentIntent = await service.CreateAsync(options: options);
 
         return paymentIntent.ClientSecret;
+    }
+
+    public async Task<string> GetPaymentIntentStatusAsync(string paymentIntentId)
+    {
+        var service = new PaymentIntentService();
+        var intent = await service.GetAsync(id: paymentIntentId);
+        return intent.Status;
     }
 }

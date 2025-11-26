@@ -29,15 +29,16 @@ public class AuthService(
     public async Task<AuthResult> RegisterAsync(RegistroUsuarioDto registroDto)
     {
         // 1. Validación de usuario existente (con protección de enumeración)
-        var usuarioExistente = await context.Usuarios.AnyAsync(u => u.Email.ToLower() == registroDto.Email.ToLower());
+        var usuarioExistente = await context.Usuarios.AnyAsync(predicate: u => u.Email.ToLower() == registroDto.Email.ToLower());
     
         if (usuarioExistente)
         {
-            return AuthResult.Ok(null, "Si el correo es válido, recibirás un enlace de confirmación.");
+            return AuthResult.Ok(token: null,
+                message: "Si el correo es válido, recibirás un enlace de confirmación.");
         }
 
         // 2. Preparar datos
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(registroDto.Password);
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(inputKey: registroDto.Password);
     
         // Generar el token de verificación 
         var verificationToken = tokenService.GenerarRefreshToken(); 
@@ -48,19 +49,20 @@ public class AuthService(
             numeroTelefono: registroDto.NumeroTelefono,
             rol: RolUsuario.User);
     
-        nuevoUsuario.EstablecerPasswordHash(passwordHash);
+        nuevoUsuario.EstablecerPasswordHash(passwordHash: passwordHash);
     
         // Asignar el token a la entidad 
-        nuevoUsuario.SetEmailVerificationToken(verificationToken);
+        nuevoUsuario.SetEmailVerificationToken(token: verificationToken);
 
         // 3. Guardar en Base de Datos (Operación Atómica Única)
-        await context.Usuarios.AddAsync(nuevoUsuario);
+        await context.Usuarios.AddAsync(entity: nuevoUsuario);
         await context.SaveChangesAsync(); 
 
         // 4. Enviar correo (fuera de la transacción de BD)
-        await SendVerificationEmailAsync(nuevoUsuario);
+        await SendVerificationEmailAsync(usuario: nuevoUsuario);
 
-        return AuthResult.Ok(null, "Si el correo es válido, recibirás un enlace de confirmación.");
+        return AuthResult.Ok(token: null,
+            message: "Si el correo es válido, recibirás un enlace de confirmación.");
     }
 
     /// <summary>
@@ -71,19 +73,21 @@ public class AuthService(
     public async Task<TokenResponseDto> LoginAsync(LoginUsuarioDto loginDto)
     {
         // Busca al usuario por su email a través del contrato del contexto.
-        var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+        var usuario = await context.Usuarios.FirstOrDefaultAsync(predicate: u => u.Email == loginDto.Email);
 
         // Valida si el usuario existe y si la contraseña proporcionada es correcta.
         if (usuario == null || usuario.PasswordHash == null ||
-            !BCrypt.Net.BCrypt.Verify(loginDto.Password, usuario.PasswordHash))
+            !BCrypt.Net.BCrypt.Verify(text: loginDto.Password,
+                hash: usuario.PasswordHash))
         {
-            throw new ValidationException("Credenciales inválidas.");
+            throw new ValidationException(message: "Credenciales inválidas.");
         }
         // Genera los tokens de acceso y refresco
-        var accessToken = tokenService.CrearToken(usuario);
+        var accessToken = tokenService.CrearToken(usuario: usuario);
         var refreshToken = tokenService.GenerarRefreshToken();
         // Guardamos el nuevo refresh token en el usuario (expira en 30 días)
-        usuario.SetRefreshToken(refreshToken, DateTime.UtcNow.AddDays(30));
+        usuario.SetRefreshToken(refreshToken: refreshToken,
+            expiryTime: DateTime.UtcNow.AddDays(value: 30));
         await context.SaveChangesAsync();
 
         return new TokenResponseDto
@@ -101,14 +105,14 @@ public class AuthService(
         // Validar que el proveedor es Google
         if (externalLoginDto.Provider.ToLower() != "google")
         {
-            throw new ValidationException("Proveedor no soportado.");
+            throw new ValidationException(message: "Proveedor no soportado.");
         }
         
         // Validar el token
-        var userInfo = await externalAuthValidator.ValidateTokenAsync(externalLoginDto.IdToken);
+        var userInfo = await externalAuthValidator.ValidateTokenAsync(idToken: externalLoginDto.IdToken);
         if (userInfo == null)
         {
-            throw new ValidationException("Token externo inválido.");
+            throw new ValidationException(message: "Token externo inválido.");
         }
 
         // Inicia transaction
@@ -117,8 +121,8 @@ public class AuthService(
         try
         {
             // 1. Buscar Login Existente
-            var userLogin = await context.UserLogins.Include(ul => ul.Usuario)
-                .FirstOrDefaultAsync(ul => ul.LoginProvider == "Google" && ul.ProviderKey == userInfo.ProviderSubjectId);
+            var userLogin = await context.UserLogins.Include(navigationPropertyPath: ul => ul.Usuario)
+                .FirstOrDefaultAsync(predicate: ul => ul.LoginProvider == "Google" && ul.ProviderKey == userInfo.ProviderSubjectId);
 
             Usuario usuario;
 
@@ -129,16 +133,19 @@ public class AuthService(
             else
             {
                 // 2. Nuevo Login: Buscar usuario por email o crear uno nuevo
-                usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.Email.ToLower() == userInfo.Email.ToLower());
+                usuario = await context.Usuarios.FirstOrDefaultAsync(predicate: u => u.Email.ToLower() == userInfo.Email.ToLower());
 
                 if (usuario == null)
                 {
                     // Crear Usuario
-                    usuario = new Usuario(nombreCompleto: userInfo.Name, email: userInfo.Email, numeroTelefono: "", rol: RolUsuario.User);
-                    usuario.SetAvatarUrl(userInfo.PictureUrl);
+                    usuario = new Usuario(nombreCompleto: userInfo.Name,
+                        email: userInfo.Email,
+                        numeroTelefono: "",
+                        rol: RolUsuario.User);
+                    usuario.SetAvatarUrl(nuevoUrl: userInfo.PictureUrl);
                     usuario.MarkEmailAsVerified(); // Email de Google ya viene verificado
                     
-                    await context.Usuarios.AddAsync(usuario);
+                    await context.Usuarios.AddAsync(entity: usuario);
                     await context.SaveChangesAsync(); // Se guarda temporalmente dentro de la transacción
                 }
 
@@ -149,20 +156,21 @@ public class AuthService(
                     usuario: usuario);
                 
                 // Actualizar foto si es necesario
-                if (string.IsNullOrEmpty(usuario.AvatarUrl))
+                if (string.IsNullOrEmpty(value: usuario.AvatarUrl))
                 {
-                     usuario.SetAvatarUrl(userInfo.PictureUrl);
+                     usuario.SetAvatarUrl(nuevoUrl: userInfo.PictureUrl);
                 }
 
-                await context.UserLogins.AddAsync(nuevoLogin);
+                await context.UserLogins.AddAsync(entity: nuevoLogin);
                 await context.SaveChangesAsync();
             }
 
             // 3. Generar Tokens
-            var accessToken = tokenService.CrearToken(usuario);
+            var accessToken = tokenService.CrearToken(usuario: usuario);
             var refreshToken = tokenService.GenerarRefreshToken();
             
-            usuario.SetRefreshToken(refreshToken, DateTime.UtcNow.AddDays(30));
+            usuario.SetRefreshToken(refreshToken: refreshToken,
+                expiryTime: DateTime.UtcNow.AddDays(value: 30));
             await context.SaveChangesAsync();
 
             // Commit de transaction
@@ -190,22 +198,23 @@ public class AuthService(
     public async Task<TokenResponseDto> RefreshTokenAsync(string refreshToken)
     {
         // Buscamos al usuario que tenga este refresh token
-        var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+        var usuario = await context.Usuarios.FirstOrDefaultAsync(predicate: u => u.RefreshToken == refreshToken);
         // Validamos que exista el usuario y que el refresh token no haya expirado
         if (usuario == null)
         {
-            throw new ValidationException("Refresh token inválido.");
+            throw new ValidationException(message: "Refresh token inválido.");
         }
         // Validamos que el refresh token no haya expirado
         if (usuario.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-            throw new ValidationException("Refresh token expirado.");
+            throw new ValidationException(message: "Refresh token expirado.");
         }
         // Generamos nuevos tokens
-        var newAccessToken = tokenService.CrearToken(usuario);
+        var newAccessToken = tokenService.CrearToken(usuario: usuario);
         var newRefreshToken = tokenService.GenerarRefreshToken();
         // Actualizamos el usuario con el nuevo refresh token (Rotación de tokens)
-        usuario.SetRefreshToken(newRefreshToken, DateTime.UtcNow.AddDays(30));
+        usuario.SetRefreshToken(refreshToken: newRefreshToken,
+            expiryTime: DateTime.UtcNow.AddDays(value: 30));
         await context.SaveChangesAsync();
         // Devolvemos los nuevos tokens
         return new TokenResponseDto
@@ -223,20 +232,21 @@ public class AuthService(
     public async Task<AuthResult> VerifyEmailAsync(string token)
     {
         // Decodifica el token que viene de la URL
-        var decodedToken = WebUtility.UrlDecode(token);
+        var decodedToken = WebUtility.UrlDecode(encodedValue: token);
         // Busca en la BD usando el token decodificado
-        var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
+        var usuario = await context.Usuarios.FirstOrDefaultAsync(predicate: u => u.EmailVerificationToken == token);
         // Valida que exista el usuario y que el token no haya expirado
         if (usuario == null)
         {
-            return AuthResult.Fail("Token de verificación inválido.");
+            return AuthResult.Fail(message: "Token de verificación inválido.");
         }
         // Marca el email del usuario como verificado
         usuario.MarkEmailAsVerified();
         // Guarda los cambios en la base de datos
         await context.SaveChangesAsync();
         // Devuelve un resultado exitoso.
-        return AuthResult.Ok(null, "Email verificado exitosamente.");
+        return AuthResult.Ok(token: null,
+            message: "Email verificado exitosamente.");
     }
 
     /// <summary>
@@ -245,7 +255,7 @@ public class AuthService(
     public async Task<AuthResult> ForgotPasswordAsync(string email)
     {
         // 1. Buscar al usuario por su email
-        var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+        var usuario = await context.Usuarios.FirstOrDefaultAsync(predicate: u => u.Email.ToLower() == email.ToLower());
 
         // 2. ¡IMPORTANTE! Por seguridad, NUNCA reveles si el email existe o no.
         //    Devuelve siempre un mensaje de éxito genérico.
@@ -255,17 +265,19 @@ public class AuthService(
             var resetToken = tokenService.GenerarRefreshToken();
 
             // 4. Establecer el token y una hora de expiración (ej. 1 hora)
-            usuario.SetPasswordResetToken(resetToken, DateTime.UtcNow.AddHours(1));
+            usuario.SetPasswordResetToken(token: resetToken,
+                expiryTime: DateTime.UtcNow.AddHours(value: 1));
 
             // 5. Guardar el token en la base de datos
             await context.SaveChangesAsync();
 
             // 6. Enviar el email de reseteo
-            await SendPasswordResetEmailAsync(usuario);
+            await SendPasswordResetEmailAsync(usuario: usuario);
         }
 
         // 7. Devolver siempre este mensaje
-        return AuthResult.Ok(null, "Si existe una cuenta con ese correo, se ha enviado un enlace para restablecer la contraseña.");
+        return AuthResult.Ok(token: null,
+            message: "Si existe una cuenta con ese correo, se ha enviado un enlace para restablecer la contraseña.");
     }
 
     /// <summary>
@@ -274,24 +286,24 @@ public class AuthService(
     public async Task<AuthResult> ResetPasswordAsync(ResetPasswordDto dto)
     {
         // Decodifica el token que viene del DTO (que vino de la URL)
-        var decodedToken = WebUtility.UrlDecode(dto.Token);
+        var decodedToken = WebUtility.UrlDecode(encodedValue: dto.Token);
         // Busca en la BD usando el token decodificado
-        var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.PasswordResetToken == decodedToken);
+        var usuario = await context.Usuarios.FirstOrDefaultAsync(predicate: u => u.PasswordResetToken == decodedToken);
 
         // 2. Validar el token y su expiración
         if (usuario == null)
         {
-            return AuthResult.Fail("El token de restablecimiento no es válido.");
+            return AuthResult.Fail(message: "El token de restablecimiento no es válido.");
         }
 
         if (usuario.PasswordResetTokenExpiryTime <= DateTime.UtcNow)
         {
-            return AuthResult.Fail("El token de restablecimiento ha expirado.");
+            return AuthResult.Fail(message: "El token de restablecimiento ha expirado.");
         }
 
         // 3. Hashear y establecer la nueva contraseña
-        var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-        usuario.EstablecerPasswordHash(newPasswordHash);
+        var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(inputKey: dto.NewPassword);
+        usuario.EstablecerPasswordHash(passwordHash: newPasswordHash);
 
         // 4. Limpiar el token para que no se pueda reusar
         usuario.ClearPasswordResetToken();
@@ -299,7 +311,8 @@ public class AuthService(
         // 5. Guardar los cambios
         await context.SaveChangesAsync();
 
-        return AuthResult.Ok(null, "Contraseña restablecida exitosamente.");
+        return AuthResult.Ok(token: null,
+            message: "Contraseña restablecida exitosamente.");
     }
     
     #region Private Methods
@@ -310,20 +323,20 @@ public class AuthService(
     private async Task SendPasswordResetEmailAsync(Usuario usuario)
     {
         // Crea el enlace
-        var frontendBaseUrl = configuration["AppSettings:FrontendBaseUrl"];
-        var encodedToken = WebUtility.UrlEncode(usuario.PasswordResetToken);
+        var frontendBaseUrl = configuration[key: "AppSettings:FrontendBaseUrl"];
+        var encodedToken = WebUtility.UrlEncode(value: usuario.PasswordResetToken);
         var resetLink = $"{frontendBaseUrl}/reset-password?token={encodedToken}";
         // Envia el mensaje
         try
         {
             await emailService.SendPasswordResetEmailAsync(
-                usuario.Email, 
-                usuario.NombreCompleto, 
-                resetLink);
+                toEmail: usuario.Email, 
+                userName: usuario.NombreCompleto, 
+                resetLink: resetLink);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al enviar email de reseteo: {ex.Message}");
+            Console.WriteLine(value: $"Error al enviar email de reseteo: {ex.Message}");
         }
     }
 
@@ -334,20 +347,20 @@ public class AuthService(
     private async Task SendVerificationEmailAsync(Usuario usuario)
     {
         // 1. Construir el enlace (AuthService aún es responsable de esto)
-        var frontendBaseUrl = configuration["AppSettings:FrontendBaseUrl"];
-        var encodedToken = WebUtility.UrlEncode(usuario.EmailVerificationToken);
+        var frontendBaseUrl = configuration[key: "AppSettings:FrontendBaseUrl"];
+        var encodedToken = WebUtility.UrlEncode(value: usuario.EmailVerificationToken);
         var verificationLink = $"{frontendBaseUrl}/verify-email?token={encodedToken}";
         // 2. Enviar 
         try
         {
             await emailService.SendVerificationEmailAsync(
-                usuario.Email, 
-                usuario.NombreCompleto, 
-                verificationLink);
+                toEmail: usuario.Email, 
+                userName: usuario.NombreCompleto, 
+                verificationLink: verificationLink);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al enviar email de verificación: {ex.Message}");
+            Console.WriteLine(value: $"Error al enviar email de verificación: {ex.Message}");
         }
     }
     

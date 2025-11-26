@@ -11,9 +11,6 @@ Este proyecto va más allá de lo básico, implementando estándares de segurida
 ### 🛡️ Seguridad Avanzada
 * **Cookies HttpOnly & Secure:** Estrategia híbrida de autenticación. El `AccessToken` vive en memoria (para evitar CSRF) y el `RefreshToken` en una cookie `HttpOnly` (para evitar XSS).
 * **Rate Limiting:** Protección contra fuerza bruta y DoS utilizando el middleware nativo de .NET 9 (`FixedWindowLimiter`) en endpoints críticos de autenticación.
-* **Validación de Archivos Robusta:** Verificación de "Magic Numbers" (firmas hexadecimales) al subir imágenes para evitar la ejecución de scripts maliciosos disfrazados.
-* **CORS Estricto:** Políticas de origen restringidas explícitamente para permitir credenciales de forma segura.
-* **Anti-Enumeración:** Respuestas genéricas en el registro y recuperación de contraseña para evitar la enumeración de usuarios.
 
 ### 🏗️ Arquitectura & Backend
 * **Arquitectura Limpia (Clean Architecture):** Separación estricta de responsabilidades (`Domain`, `Application`, `Infrastructure`, `Api`).
@@ -24,13 +21,16 @@ Este proyecto va más allá de lo básico, implementando estándares de segurida
 
 ### 🛍️ E-commerce & Admin
 *   **Carrito de Compras:** Sincronización inteligente entre frontend y backend. Persistencia en base de datos para usuarios logueados.
+*   **Gestión de Pedidos (Usuario):** Vista dedicada "Mis Pedidos" para que los clientes consulten su historial y estado de compras.
+*   **Dirección de Envío:** Gestión de direcciones de envío persistentes desde el perfil del usuario.
 *   **Panel de Administración:**
     *   **Dashboard:** Vista general del estado de la tienda.
-    *   **Gestión de Productos:** CRUD completo con soporte para imágenes.
+    *   **Gestión de Productos:** CRUD completo con soporte para imágenes y paginación.
     *   **Gestión de Pedidos:** Visualización y actualización de estados (Pendiente -> Enviado -> Entregado).
     *   **Seguridad:** Rutas protegidas por Roles (`Admin`).
 
 ### 🎨 Frontend (UX/UI)
+* **Perfil Unificado:** Interfaz de usuario organizada en pestañas (General, Envíos, Seguridad) para una mejor experiencia de gestión de cuenta.
 * **TypeScript Estricto:** Código tipado rigurosamente (sin `any`) para mayor mantenibilidad.
 * **UX Optimizado:** Implementación de **Skeleton Loaders** para cargas suaves y validaciones de archivos en el cliente para ahorrar ancho de banda.
 * **Gestión de Estado:** Uso de **Pinia** con persistencia selectiva (solo datos de perfil, nunca credenciales).

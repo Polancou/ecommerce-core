@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toRef } from 'vue';
+import { toRef, watch } from 'vue';
 import { useField } from 'vee-validate';
 
 // Define las propiedades del componente
@@ -10,9 +10,23 @@ const props = defineProps<{
   type: string
   placeholder?: string
   required?: boolean
+  modelValue?: string | number
 }>()
+
+const emit = defineEmits(['update:modelValue'])
+
 // Vincula el input al estado de VeeValidate usando la prop 'name'
-const { value, errorMessage } = useField<string>(toRef(props, 'name'))
+const { value, errorMessage } = useField<string | number | undefined>(toRef(props, 'name'), undefined, {
+  initialValue: props.modelValue
+})
+
+watch(() => props.modelValue, (newVal) => {
+  value.value = newVal;
+});
+
+watch(value, (newVal) => {
+  emit('update:modelValue', newVal);
+});
 </script>
 
 <template>

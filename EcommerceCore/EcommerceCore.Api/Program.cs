@@ -38,6 +38,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IShippingService, ShippingService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
@@ -81,25 +82,28 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
     // Configura el limte de peticiones, si no existe, usa 5 por defecto
-    var authPermitLimit = builder.Configuration.GetValue("RateLimiting:AuthPermitLimit", 10);
+    var authPermitLimit = builder.Configuration.GetValue("RateLimiting:AuthPermitLimit",
+        10);
     // Política Estricta para Autenticación
     // Permite 5 intentos cada 60 segundos por dirección IP.
-    options.AddFixedWindowLimiter("AuthPolicy", opt =>
-    {
-        opt.Window = TimeSpan.FromSeconds(60);
-        opt.PermitLimit = authPermitLimit;
-        opt.QueueLimit = 0;
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-    });
+    options.AddFixedWindowLimiter("AuthPolicy",
+        opt =>
+        {
+            opt.Window = TimeSpan.FromSeconds(60);
+            opt.PermitLimit = authPermitLimit;
+            opt.QueueLimit = 0;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        });
 
     // Política Global (opcional, para el resto de la API)
     // Permite 100 peticiones por minuto por IP.
-    options.AddFixedWindowLimiter("GlobalPolicy", opt =>
-    {
-        opt.Window = TimeSpan.FromSeconds(60);
-        opt.PermitLimit = 1000;
-        opt.QueueLimit = 2;
-    });
+    options.AddFixedWindowLimiter("GlobalPolicy",
+        opt =>
+        {
+            opt.Window = TimeSpan.FromSeconds(60);
+            opt.PermitLimit = 1000;
+            opt.QueueLimit = 2;
+        });
 });
 
 // --- Configuración de Validación con FluentValidation ---
@@ -138,7 +142,8 @@ builder.Services.AddApiVersioning(options =>
     {
         options.ReportApiVersions = true;
         options.AssumeDefaultVersionWhenUnspecified = true;
-        options.DefaultApiVersion = new ApiVersion(majorVersion: 1, minorVersion: 0);
+        options.DefaultApiVersion = new ApiVersion(majorVersion: 1,
+            minorVersion: 0);
         options.ApiVersionReader = new UrlSegmentApiVersionReader();
     })
     .AddApiExplorer(options =>
@@ -199,7 +204,8 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "La aplicación no pudo iniciar correctamente.");
+    Log.Fatal(ex,
+        "La aplicación no pudo iniciar correctamente.");
 }
 finally
 {

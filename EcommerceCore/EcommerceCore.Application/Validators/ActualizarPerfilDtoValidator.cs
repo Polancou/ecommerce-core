@@ -10,7 +10,8 @@ public class ActualizarPerfilDtoValidator : AbstractValidator<ActualizarPerfilDt
 {
     public ActualizarPerfilDtoValidator()
     {
-        RuleFor(x => x.NombreCompleto).NotEmpty().Length(3, 100);
-        RuleFor(x => x.NumeroTelefono).NotEmpty();
+        RuleFor(expression: x => x.NombreCompleto).NotEmpty().Length(min: 3,
+            max: 100);
+        RuleFor(expression: x => x.NumeroTelefono).NotEmpty();
     }
 }

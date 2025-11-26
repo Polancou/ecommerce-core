@@ -26,14 +26,22 @@ public class CartControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
     private async Task<(string Token, int ProductId)> SetupUserAndProductAsync()
     {
         // Create User
-        var (_, token) = await _factory.CreateUserAndGetTokenAsync("User", "user@test.com", RolUsuario.User);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var (_, token) = await _factory.CreateUserAndGetTokenAsync("User",
+            "user@test.com",
+            RolUsuario.User);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            token);
 
         // Create Product (need admin token temporarily or bypass controller)
         // We'll use a separate scope to add product directly to DB to avoid auth dance
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<Infrastructure.Data.ApplicationDbContext>();
-        var product = new Product("Test Prod", "Desc", 100, 10, "url", "Cat");
+        var product = new Product("Test Prod",
+            "Desc",
+            100,
+            10,
+            "url",
+            "Cat");
         context.Products.Add(product);
         await context.SaveChangesAsync();
 
@@ -64,7 +72,8 @@ public class CartControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         var dto = new AddToCartDto { ProductId = productId, Quantity = 2 };
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items", dto);
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
+            dto);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -81,7 +90,12 @@ public class CartControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         // Arrange
         var (token, productId) = await SetupUserAndProductAsync();
         // Add item first
-        await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items", new AddToCartDto { ProductId = productId, Quantity = 1 });
+        await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
+            new AddToCartDto
+            {
+                ProductId = productId,
+                Quantity = 1
+            });
 
         // Act
         var response = await _client.DeleteAsync($"/api/{ApiVersion}/cart/items/{productId}");
@@ -103,7 +117,8 @@ public class CartControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/sync", localItems);
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/sync",
+            localItems);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

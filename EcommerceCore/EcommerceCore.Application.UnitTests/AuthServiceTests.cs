@@ -88,7 +88,8 @@ public class AuthServiceTests
 
         // Se verifica que el método para guardar cambios en el contexto fue llamado
         // exactamente una vez. Esto confirma que el servicio intentó persistir los datos.
-        _mockDbContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     /// <summary>
@@ -100,7 +101,10 @@ public class AuthServiceTests
         // --- Arrange (Preparar) ---
         var registroDto = new RegistroUsuarioDto { Email = "existente@email.com", Password = "password123" };
         var existingUser = new List<Usuario>
-            { new("Usuario Existente", "existente@email.com", "123", RolUsuario.User) };
+            { new("Usuario Existente",
+                "existente@email.com",
+                "123",
+                RolUsuario.User) };
 
         // Se configura el mock para que, al consultar los usuarios, devuelva una lista
         // que contiene un usuario con el mismo email, simulando que ya está en uso.
@@ -153,7 +157,8 @@ public class AuthServiceTests
         result.RefreshToken.Should().Be("jwt-refresh-token");
 
         // Se verifica que se intentó guardar el nuevo usuario y el nuevo login externo.
-        _mockDbContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(3));
+        _mockDbContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Exactly(3));
     }
 
     [Fact]
@@ -161,7 +166,10 @@ public class AuthServiceTests
     {
         // --- Arrange (Preparar) ---
         var fakeToken = "valid-token";
-        var usuario = new Usuario("Test", "test@test.com", "123", RolUsuario.User);
+        var usuario = new Usuario("Test",
+            "test@test.com",
+            "123",
+            RolUsuario.User);
         usuario.SetEmailVerificationToken(fakeToken); // El usuario tiene el token
         
         // Creamos una lista que contiene al usuario
@@ -181,7 +189,8 @@ public class AuthServiceTests
         usuario.EmailVerificationToken.Should().BeNull();
         
         // Verifica que se guardaron los cambios
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -204,7 +213,8 @@ public class AuthServiceTests
         result.Message.Should().Be("Token de verificación inválido.");
         
         // Verifica que NO se guardaron cambios
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     #region ForgotPasswordAsync Tests
@@ -215,7 +225,10 @@ public class AuthServiceTests
         // --- Arrange (Preparar) ---
         var userEmail = "test@test.com";
         var fakeToken = "fake-reset-token-123";
-        var usuario = new Usuario("Test User", userEmail, "123", RolUsuario.User);
+        var usuario = new Usuario("Test User",
+            userEmail,
+            "123",
+            RolUsuario.User);
         var usersList = new List<Usuario> { usuario };
 
         // 1. Simula la colección Usuarios
@@ -234,15 +247,18 @@ public class AuthServiceTests
 
         // 2. Verifica que el token se guardó en el usuario
         usuario.PasswordResetToken.Should().Be(fakeToken);
-        usuario.PasswordResetTokenExpiryTime.Should().BeCloseTo(DateTime.UtcNow.AddHours(1), precision: TimeSpan.FromSeconds(5));
+        usuario.PasswordResetTokenExpiryTime.Should().BeCloseTo(DateTime.UtcNow.AddHours(1),
+            precision: TimeSpan.FromSeconds(5));
 
         // 3. Verifica que se guardó en la BD y se envió el email
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
         _mockEmailService.Verify(s => s.SendPasswordResetEmailAsync(
-            It.Is<string>(email => email == userEmail),         // toEmail
-            It.Is<string>(name => name == "Test User"),         // userName
-            It.Is<string>(link => link.Contains(fakeToken))    // resetLink
-        ), Times.Once);
+                It.Is<string>(email => email == userEmail), // toEmail
+                It.Is<string>(name => name == "Test User"), // userName
+                It.Is<string>(link => link.Contains(fakeToken)) // resetLink
+            ),
+            Times.Once);
     }
 
     [Fact]
@@ -263,12 +279,14 @@ public class AuthServiceTests
         result.Message.Should().Be("Si existe una cuenta con ese correo, se ha enviado un enlace para restablecer la contraseña.");
 
         // 2. Verifica que NO se guardó nada y NO se envió email
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
         _mockEmailService.Verify(s => s.SendPasswordResetEmailAsync(
-            It.IsAny<string>(), // toEmail
-            It.IsAny<string>(), // userName
-            It.IsAny<string>()  // resetLink
-        ), Times.Never);    }
+                It.IsAny<string>(), // toEmail
+                It.IsAny<string>(), // userName
+                It.IsAny<string>() // resetLink
+            ),
+            Times.Never);    }
 
     #endregion
 
@@ -282,10 +300,14 @@ public class AuthServiceTests
         var dto = new ResetPasswordDto { Token = fakeToken, NewPassword = "NewPassword123!", ConfirmPassword = "NewPassword123!" };
         var oldHash = BCrypt.Net.BCrypt.HashPassword("OldPassword");
 
-        var usuario = new Usuario("Test User", "test@test.com", "123", RolUsuario.User);
+        var usuario = new Usuario("Test User",
+            "test@test.com",
+            "123",
+            RolUsuario.User);
         usuario.EstablecerPasswordHash(oldHash);
         // El token es válido y expira en el futuro
-        usuario.SetPasswordResetToken(fakeToken, DateTime.UtcNow.AddHours(1));
+        usuario.SetPasswordResetToken(fakeToken,
+            DateTime.UtcNow.AddHours(1));
 
         var usersList = new List<Usuario> { usuario };
         _mockDbContext.Setup(c => c.Usuarios).ReturnsDbSet(usersList);
@@ -305,7 +327,8 @@ public class AuthServiceTests
         usuario.PasswordResetTokenExpiryTime.Should().BeNull();
 
         // 3. Verifica que se guardaron los cambios
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -321,7 +344,8 @@ public class AuthServiceTests
         // --- Assert (Verificar) ---
         result.Success.Should().BeFalse();
         result.Message.Should().Be("El token de restablecimiento no es válido.");
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -331,9 +355,13 @@ public class AuthServiceTests
         var fakeToken = "expired-token";
         var dto = new ResetPasswordDto { Token = fakeToken, /* ... */ };
 
-        var usuario = new Usuario("Test User", "test@test.com", "123", RolUsuario.User);
+        var usuario = new Usuario("Test User",
+            "test@test.com",
+            "123",
+            RolUsuario.User);
         // El token expiró en el pasado
-        usuario.SetPasswordResetToken(fakeToken, DateTime.UtcNow.AddHours(-1));
+        usuario.SetPasswordResetToken(fakeToken,
+            DateTime.UtcNow.AddHours(-1));
 
         var usersList = new List<Usuario> { usuario };
         _mockDbContext.Setup(c => c.Usuarios).ReturnsDbSet(usersList);
@@ -344,7 +372,8 @@ public class AuthServiceTests
         // --- Assert (Verificar) ---
         result.Success.Should().BeFalse();
         result.Message.Should().Be("El token de restablecimiento ha expirado.");
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     #endregion

@@ -38,8 +38,11 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
     public async Task CreateProduct_WithAdminToken_ShouldReturnCreated()
     {
         // Arrange
-        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin", "admin@test.com", RolUsuario.Admin);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin",
+            "admin@test.com",
+            RolUsuario.Admin);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            adminToken);
 
         var dto = new CreateProductDto
         {
@@ -52,7 +55,8 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products", dto);
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products",
+            dto);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -65,8 +69,11 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
     public async Task CreateProduct_WithUserToken_ShouldReturnForbidden()
     {
         // Arrange
-        var (_, userToken) = await _factory.CreateUserAndGetTokenAsync("User", "user@test.com", RolUsuario.User);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
+        var (_, userToken) = await _factory.CreateUserAndGetTokenAsync("User",
+            "user@test.com",
+            RolUsuario.User);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            userToken);
 
         var dto = new CreateProductDto
         {
@@ -79,7 +86,8 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products", dto);
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products",
+            dto);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -89,12 +97,16 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
     public async Task UpdateProduct_WithAdminToken_ShouldReturnNoContent()
     {
         // Arrange
-        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin", "admin@test.com", RolUsuario.Admin);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin",
+            "admin@test.com",
+            RolUsuario.Admin);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            adminToken);
 
         // Create product first
         var createDto = new CreateProductDto { Name = "P1", Description = "D", Price = 10, Stock = 5, ImageUrl = "u", Category = "C" };
-        var createResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products", createDto);
+        var createResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products",
+            createDto);
         var createdProduct = await createResponse.Content.ReadFromJsonAsync<ProductDto>();
 
         var updateDto = new UpdateProductDto
@@ -108,7 +120,8 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
         };
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/products/{createdProduct!.Id}", updateDto);
+        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/products/{createdProduct!.Id}",
+            updateDto);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -124,12 +137,16 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
     public async Task DeleteProduct_WithAdminToken_ShouldReturnNoContent()
     {
         // Arrange
-        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin", "admin@test.com", RolUsuario.Admin);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin",
+            "admin@test.com",
+            RolUsuario.Admin);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            adminToken);
 
         // Create product first
         var createDto = new CreateProductDto { Name = "P1", Description = "D", Price = 10, Stock = 5, ImageUrl = "u", Category = "C" };
-        var createResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products", createDto);
+        var createResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products",
+            createDto);
         var createdProduct = await createResponse.Content.ReadFromJsonAsync<ProductDto>();
 
         // Act

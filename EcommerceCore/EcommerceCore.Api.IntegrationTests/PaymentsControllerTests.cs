@@ -21,11 +21,14 @@ public class PaymentsControllerTests : IClassFixture<TestApiFactory>
     public async Task CreatePaymentIntent_WithEmptyCart_ShouldReturnBadRequest()
     {
         // Arrange
-        var (user, token) = await _factory.CreateUserAndGetTokenAsync("PaymentUser", "pay@test.com");
-        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var (user, token) = await _factory.CreateUserAndGetTokenAsync("PaymentUser",
+            "pay@test.com");
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",
+            token);
 
         // Act
-        var response = await _client.PostAsync("/api/v1/payments/create-intent", null);
+        var response = await _client.PostAsync("/api/v1/payments/create-intent",
+            null);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);

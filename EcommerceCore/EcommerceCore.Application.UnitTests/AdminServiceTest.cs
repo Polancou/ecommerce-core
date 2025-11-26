@@ -47,7 +47,10 @@ public class AdminServiceTests
         var allUsers = new List<Usuario>();
         for (int i = 0; i < 150; i++)
         {
-            allUsers.Add(new Usuario($"User {i}", $"user{i}@test.com", "123", RolUsuario.User));
+            allUsers.Add(new Usuario($"User {i}",
+                $"user{i}@test.com",
+                "123",
+                RolUsuario.User));
         }
 
         // 2. Crea la lista de 10 DTOs que esperas
@@ -68,7 +71,8 @@ public class AdminServiceTests
             .Returns(expectedDtos);
 
         // --- Act (Actuar) ---
-        var result = await _adminService.GetUsersPaginatedAsync(pageNumber: pageNumber, pageSize: pageSize);
+        var result = await _adminService.GetUsersPaginatedAsync(pageNumber: pageNumber,
+            pageSize: pageSize);
 
         // --- Assert (Verificar) ---
         result.Should().NotBeNull();
@@ -78,7 +82,8 @@ public class AdminServiceTests
         result.PageSize.Should().Be(expected: 10);
 
         // Verifica que el mapper fue llamado con una lista de 10
-        _mockMapper.Verify(m => m.Map<List<PerfilUsuarioDto>>(It.Is<List<Usuario>>(list => list.Count == 10)), Times.Once);
+        _mockMapper.Verify(m => m.Map<List<PerfilUsuarioDto>>(It.Is<List<Usuario>>(list => list.Count == 10)),
+            Times.Once);
     }
 
     #endregion
@@ -96,14 +101,17 @@ public class AdminServiceTests
         var userIdToDelete = 5; // Mismo ID
 
         // --- Act (Actuar) ---
-        Func<Task> act = async () => await _adminService.DeleteUserAsync(userIdToDelete, adminId);
+        Func<Task> act = async () => await _adminService.DeleteUserAsync(userIdToDelete,
+            adminId);
 
         // --- Assert (Verificar) ---
         await act.Should().ThrowAsync<ValidationException>()
             .WithMessage("No se puede eliminar el administrador.");
 
-        _mockDbContext.Verify(c => c.Usuarios.Remove(It.IsAny<Usuario>()), Times.Never);
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.Usuarios.Remove(It.IsAny<Usuario>()),
+            Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     /// <summary>
@@ -122,14 +130,17 @@ public class AdminServiceTests
                       .ReturnsAsync((Usuario)null);
 
         // --- Act (Actuar) ---
-        Func<Task> act = async () => await _adminService.DeleteUserAsync(userIdToDelete, adminId);
+        Func<Task> act = async () => await _adminService.DeleteUserAsync(userIdToDelete,
+            adminId);
 
         // --- Assert (Verificar) ---
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage("No se encontró el usuario.");
 
-        _mockDbContext.Verify(c => c.Usuarios.Remove(It.IsAny<Usuario>()), Times.Never);
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.Usuarios.Remove(It.IsAny<Usuario>()),
+            Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     /// <summary>
@@ -143,7 +154,10 @@ public class AdminServiceTests
         var userIdToDelete = 1; // Usuario a eliminar
 
         // Creamos el objeto usuario que esperamos que FindAsync devuelva
-        var usuarioParaBorrar = new Usuario("Usuario a Borrar", "test@email.com", "123", RolUsuario.User);
+        var usuarioParaBorrar = new Usuario("Usuario a Borrar",
+            "test@email.com",
+            "123",
+            RolUsuario.User);
 
         // 1. Configura FindAsync para que devuelva nuestro usuario
         _mockDbContext.Setup(c => c.Usuarios.FindAsync(userIdToDelete))
@@ -153,15 +167,18 @@ public class AdminServiceTests
         _mockDbContext.Setup(c => c.Usuarios.Remove(It.IsAny<Usuario>()));
 
         // --- Act (Actuar) ---
-        await _adminService.DeleteUserAsync(userIdToDelete, adminId);
+        await _adminService.DeleteUserAsync(userIdToDelete,
+            adminId);
 
         // --- Assert (Verificar) ---
 
         // 1. Verificamos que se llamó a Remove con ESE usuario específico
-        _mockDbContext.Verify(c => c.Usuarios.Remove(usuarioParaBorrar), Times.Once);
+        _mockDbContext.Verify(c => c.Usuarios.Remove(usuarioParaBorrar),
+            Times.Once);
 
         // 2. Verificamos que se guardaron los cambios
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     #endregion
@@ -181,19 +198,25 @@ public class AdminServiceTests
         var newRole = RolUsuario.Admin;
 
         // Creamos el objeto usuario que esperamos que FindAsync devuelva
-        var usuarioParaActualizar = new Usuario(nombreCompleto: "Usuario a Actualizar", email: "test@email.com", numeroTelefono: "123", rol: RolUsuario.User);
+        var usuarioParaActualizar = new Usuario(nombreCompleto: "Usuario a Actualizar",
+            email: "test@email.com",
+            numeroTelefono: "123",
+            rol: RolUsuario.User);
 
         // 1. Configura FindAsync para que devuelva nuestro usuario
         _mockDbContext.Setup(c => c.Usuarios.FindAsync(userIdToUpdate))
                       .ReturnsAsync(usuarioParaActualizar);
         // --- Act (Actuar) ---
-        Func<Task> act = async () => await _adminService.SetUserRoleAsync(userIdToUpdate, newRole, adminId);
+        Func<Task> act = async () => await _adminService.SetUserRoleAsync(userIdToUpdate,
+            newRole,
+            adminId);
 
         // --- Assert (Verificar) ---
         await act.Should().ThrowAsync<ValidationException>()
             .WithMessage("No se puede actualizar el rol del administrador.");
 
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     /// <summary>
@@ -209,16 +232,22 @@ public class AdminServiceTests
         var newRole = RolUsuario.Admin;
 
         // Creamos el objeto usuario que esperamos que FindAsync devuelva
-        var usuarioParaActualizar = new Usuario(nombreCompleto: "Usuario a Actualizar", email: "test@email.com", numeroTelefono: "123", rol: RolUsuario.User);
+        var usuarioParaActualizar = new Usuario(nombreCompleto: "Usuario a Actualizar",
+            email: "test@email.com",
+            numeroTelefono: "123",
+            rol: RolUsuario.User);
 
         // 1. Configura FindAsync para que devuelva nuestro usuario
         _mockDbContext.Setup(c => c.Usuarios.FindAsync(userIdToUpdate))
                       .ReturnsAsync(usuarioParaActualizar);
         // --- Act (Actuar) ---
-        await _adminService.SetUserRoleAsync(userIdToUpdate, newRole, adminId);
+        await _adminService.SetUserRoleAsync(userIdToUpdate,
+            newRole,
+            adminId);
 
         // --- Assert (Verificar) ---
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
     
     [Fact]
@@ -234,13 +263,16 @@ public class AdminServiceTests
                       .ReturnsAsync((Usuario)null);
 
         // --- Act (Actuar) ---
-        Func<Task> act = async () => await _adminService.SetUserRoleAsync(userIdToUpdate, newRole, adminId);
+        Func<Task> act = async () => await _adminService.SetUserRoleAsync(userIdToUpdate,
+            newRole,
+            adminId);
 
         // --- Assert (Verificar) ---
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage("No se encontró el usuario.");
 
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     #endregion
