@@ -23,10 +23,13 @@ public class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<Glob
         catch (Exception ex)
         {
             // Loguea el error con todos sus detalles.
-            logger.LogError(ex, "Ocurrió una excepción no controlada: {Message}", ex.Message);
+            logger.LogError(ex,
+                "Ocurrió una excepción no controlada: {Message}",
+                ex.Message);
 
             // Genera la respuesta HTTP.
-            await HandleExceptionAsync(context, ex);
+            await HandleExceptionAsync(context,
+                ex);
         }
     }
 

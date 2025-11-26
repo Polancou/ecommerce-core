@@ -12,25 +12,26 @@ public class RegistroUsuarioDtoValidator : AbstractValidator<RegistroUsuarioDto>
     public RegistroUsuarioDtoValidator()
     {
         // Regla para NombreCompleto
-        RuleFor(x => x.NombreCompleto)
-            .NotEmpty().WithMessage("El nombre es obligatorio.")
-            .Length(3, 100).WithMessage("El nombre debe tener entre 3 y 100 caracteres.");
+        RuleFor(expression: x => x.NombreCompleto)
+            .NotEmpty().WithMessage(errorMessage: "El nombre es obligatorio.")
+            .Length(min: 3,
+                max: 100).WithMessage(errorMessage: "El nombre debe tener entre 3 y 100 caracteres.");
 
         // Regla para Email
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("El email es obligatorio.")
-            .EmailAddress().WithMessage("El formato del email no es válido.");
+        RuleFor(expression: x => x.Email)
+            .NotEmpty().WithMessage(errorMessage: "El email es obligatorio.")
+            .EmailAddress().WithMessage(errorMessage: "El formato del email no es válido.");
 
         // Regla para Password
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("La contraseña es obligatoria.")
-            .MinimumLength(8).WithMessage("La contraseña debe tener al menos 8 caracteres.")
-            .Matches("[A-Z]").WithMessage("La contraseña debe contener al menos una mayúscula.")
-            .Matches("[a-z]").WithMessage("La contraseña debe contener al menos una minúscula.")
-            .Matches("[0-9]").WithMessage("La contraseña debe contener al menos un número.");
+        RuleFor(expression: x => x.Password)
+            .NotEmpty().WithMessage(errorMessage: "La contraseña es obligatoria.")
+            .MinimumLength(minimumLength: 8).WithMessage(errorMessage: "La contraseña debe tener al menos 8 caracteres.")
+            .Matches(expression: "[A-Z]").WithMessage(errorMessage: "La contraseña debe contener al menos una mayúscula.")
+            .Matches(expression: "[a-z]").WithMessage(errorMessage: "La contraseña debe contener al menos una minúscula.")
+            .Matches(expression: "[0-9]").WithMessage(errorMessage: "La contraseña debe contener al menos un número.");
 
         // Regla para NumeroTelefono
-        RuleFor(x => x.NumeroTelefono)
-            .NotEmpty().WithMessage("El número de teléfono es obligatorio.");
+        RuleFor(expression: x => x.NumeroTelefono)
+            .NotEmpty().WithMessage(errorMessage: "El número de teléfono es obligatorio.");
     }
 }

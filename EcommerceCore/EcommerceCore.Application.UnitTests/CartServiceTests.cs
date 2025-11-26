@@ -24,12 +24,19 @@ public class CartServiceTests
     {
         // Arrange
         var userId = 1;
-        var product = new Product("Prod 1", "Desc", 100, 10, "url", "Cat");
+        var product = new Product("Prod 1",
+            "Desc",
+            100,
+            10,
+            "url",
+            "Cat");
         var cart = new Cart(userId);
 
         // Setup cart with item
-        var cartItem = new CartItem(1, 1);
-        cartItem.GetType().GetProperty("Product")!.SetValue(cartItem, product);
+        var cartItem = new CartItem(1,
+            1);
+        cartItem.GetType().GetProperty("Product")!.SetValue(cartItem,
+            product);
 
         cart.Items.Add(cartItem);
 
@@ -50,7 +57,12 @@ public class CartServiceTests
         // Arrange
         var userId = 1;
         var dto = new AddToCartDto { ProductId = 1, Quantity = 1 };
-        var product = new Product("Prod 1", "Desc", 100, 10, "url", "Cat");
+        var product = new Product("Prod 1",
+            "Desc",
+            100,
+            10,
+            "url",
+            "Cat");
 
         // Initial empty cart
         var cart = new Cart(userId);
@@ -108,13 +120,15 @@ public class CartServiceTests
                 var item = cart.Items.FirstOrDefault(i => i.ProductId == 1);
                 if (item != null)
                 {
-                    item.GetType().GetProperty("Product")!.SetValue(item, product);
+                    item.GetType().GetProperty("Product")!.SetValue(item,
+                        product);
                 }
             })
             .Returns(Task.FromResult(1));
 
         // Act
-        var result = await _cartService.AddItemAsync(userId, dto);
+        var result = await _cartService.AddItemAsync(userId,
+            dto);
 
         // Assert
         result.Should().NotBeNull();
@@ -128,20 +142,29 @@ public class CartServiceTests
         // Arrange
         var userId = 1;
         var cart = new Cart(userId);
-        var product = new Product("Prod 1", "Desc", 100, 10, "url", "Cat");
+        var product = new Product("Prod 1",
+            "Desc",
+            100,
+            10,
+            "url",
+            "Cat");
 
         // Add item
-        var cartItem = new CartItem(1, 1);
-        cartItem.GetType().GetProperty("Product")!.SetValue(cartItem, product);
+        var cartItem = new CartItem(1,
+            1);
+        cartItem.GetType().GetProperty("Product")!.SetValue(cartItem,
+            product);
         cart.Items.Add(cartItem);
 
         _mockDbContext.Setup(c => c.Carts).ReturnsDbSet(new List<Cart> { cart });
 
         // Act
-        var result = await _cartService.RemoveItemAsync(userId, 1);
+        var result = await _cartService.RemoveItemAsync(userId,
+            1);
 
         // Assert
         result.Items.Should().BeEmpty();
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }

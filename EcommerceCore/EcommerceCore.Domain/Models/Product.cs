@@ -59,9 +59,12 @@ public class Product
     public Product(string name, string description, decimal price, int stock, string? imageUrl = null,
         string? category = null)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name), "El nombre es obligatorio.");
-        if (price < 0) throw new ArgumentException("El precio no puede ser negativo.", nameof(price));
-        if (stock < 0) throw new ArgumentException("El stock no puede ser negativo.", nameof(stock));
+        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name),
+            "El nombre es obligatorio.");
+        if (price < 0) throw new ArgumentException("El precio no puede ser negativo.",
+            nameof(price));
+        if (stock < 0) throw new ArgumentException("El stock no puede ser negativo.",
+            nameof(stock));
 
         Name = name;
         Description = description;

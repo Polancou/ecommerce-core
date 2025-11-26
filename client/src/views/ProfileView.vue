@@ -6,7 +6,6 @@ import BaseInput from '@/components/common/BaseInput.vue';
 import BaseButton from '@/components/common/BaseButton.vue';
 import BaseSkeleton from '@/components/common/BaseSkeleton.vue';
 import ShippingForm from '@/components/profile/ShippingForm.vue';
-import SecurityView from '@/views/SecurityView.vue'; // We can reuse the component content or import it directly if we want to keep it as a view, but better to inline or use component.
 // Actually, let's import the content of SecurityView as a component if possible, or just copy the logic.
 // Since SecurityView is a view, let's treat it as a component here or refactor it.
 // For now, I will assume we can use the logic from SecurityView. Ideally we should extract it to a component.

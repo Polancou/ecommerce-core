@@ -10,10 +10,10 @@ public class ExternalLoginDtoValidator : AbstractValidator<ExternalLoginDto>
 {
     public ExternalLoginDtoValidator()
     {
-        RuleFor(x => x.Provider)
-            .NotEmpty().WithMessage("El proveedor es obligatorio.");
+        RuleFor(expression: x => x.Provider)
+            .NotEmpty().WithMessage(errorMessage: "El proveedor es obligatorio.");
 
-        RuleFor(x => x.IdToken)
-            .NotEmpty().WithMessage("El token de ID es obligatorio.");
+        RuleFor(expression: x => x.IdToken)
+            .NotEmpty().WithMessage(errorMessage: "El token de ID es obligatorio.");
     }
 }

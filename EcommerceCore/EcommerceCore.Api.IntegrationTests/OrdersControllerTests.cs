@@ -33,13 +33,21 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
 
     private async Task<(string Token, int ProductId)> SetupUserAndProductAsync()
     {
-        var (_, token) = await _factory.CreateUserAndGetTokenAsync("User", "user@test.com", RolUsuario.User);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var (_, token) = await _factory.CreateUserAndGetTokenAsync("User",
+            "user@test.com",
+            RolUsuario.User);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            token);
 
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider
             .GetRequiredService<EcommerceCore.Infrastructure.Data.ApplicationDbContext>();
-        var product = new Product("Test Prod", "Desc", 100, 10, "url", "Cat");
+        var product = new Product("Test Prod",
+            "Desc",
+            100,
+            10,
+            "url",
+            "Cat");
         context.Products.Add(product);
         await context.SaveChangesAsync();
 
@@ -57,7 +65,8 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
             new AddToCartDto { ProductId = productId, Quantity = 2 });
 
         // Act
-        var response = await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+        var response = await _client.PostAsync($"/api/{ApiVersion}/orders",
+            null);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -75,7 +84,8 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         // Cart is empty by default
 
         // Act
-        var response = await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+        var response = await _client.PostAsync($"/api/{ApiVersion}/orders",
+            null);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -90,7 +100,8 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         // Create an order first
         await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
             new AddToCartDto { ProductId = productId, Quantity = 1 });
-        await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+        await _client.PostAsync($"/api/{ApiVersion}/orders",
+            null);
 
         // Act
         var response = await _client.GetAsync($"/api/{ApiVersion}/orders");
@@ -110,16 +121,21 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         // Create order as User
         await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
             new AddToCartDto { ProductId = productId, Quantity = 1 });
-        var createResponse = await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+        var createResponse = await _client.PostAsync($"/api/{ApiVersion}/orders",
+            null);
         var order = await createResponse.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
 
         // Login as Admin
-        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin", "admin@test.com", RolUsuario.Admin);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var (_, adminToken) = await _factory.CreateUserAndGetTokenAsync("Admin",
+            "admin@test.com",
+            RolUsuario.Admin);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            adminToken);
 
         // Act
         var updateDto = new UpdateOrderStatusDto { Status = OrderStatus.Shipped };
-        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/orders/{order!.Id}/status", updateDto);
+        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/orders/{order!.Id}/status",
+            updateDto);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -139,12 +155,14 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         // Create order
         await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
             new AddToCartDto { ProductId = productId, Quantity = 1 });
-        var createResponse = await _client.PostAsync($"/api/{ApiVersion}/orders", null);
+        var createResponse = await _client.PostAsync($"/api/{ApiVersion}/orders",
+            null);
         var order = await createResponse.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
 
         // Act (Try to update as User)
         var updateDto = new UpdateOrderStatusDto { Status = OrderStatus.Shipped };
-        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/orders/{order!.Id}/status", updateDto);
+        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/orders/{order!.Id}/status",
+            updateDto);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);

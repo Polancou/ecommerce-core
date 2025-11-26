@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import {
     HomeIcon,
@@ -8,7 +6,6 @@ import {
     ClipboardDocumentListIcon
 } from '@heroicons/vue/24/outline';
 
-const authStore = useAuthStore();
 const router = useRouter();
 
 const navigation = [
@@ -16,11 +13,6 @@ const navigation = [
     { name: 'Productos', href: '/admin/products', icon: ShoppingBagIcon },
     { name: 'Pedidos', href: '/admin/orders', icon: ClipboardDocumentListIcon },
 ];
-
-const logout = () => {
-    authStore.logout();
-    router.push('/login');
-};
 
 const isRouteActive = (href: string) => {
     if (href === '/admin') {

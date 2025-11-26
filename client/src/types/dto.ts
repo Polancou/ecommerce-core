@@ -163,3 +163,15 @@ export interface CartDto {
   items: CartItemDto[];
   totalPrice: number;
 }
+
+// DTO para direcciones de envío
+export interface ShippingAddress {
+  id?: number;
+  name: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}

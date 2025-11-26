@@ -7,8 +7,8 @@ public class ForgotPasswordDtoValidator : AbstractValidator<ForgotPasswordDto>
 {
     public ForgotPasswordDtoValidator()
     {
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("El email es obligatorio.")
-            .EmailAddress().WithMessage("El formato del email no es válido.");
+        RuleFor(expression: x => x.Email)
+            .NotEmpty().WithMessage(errorMessage: "El email es obligatorio.")
+            .EmailAddress().WithMessage(errorMessage: "El formato del email no es válido.");
     }
 }

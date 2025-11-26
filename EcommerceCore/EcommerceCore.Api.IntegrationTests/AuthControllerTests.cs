@@ -199,7 +199,8 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var user = await context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
             user.Should().NotBeNull();
-            user.RefreshTokenExpiryTime.Should().BeCloseTo(DateTime.UtcNow.AddDays(30), precision: TimeSpan.FromSeconds(10));
+            user.RefreshTokenExpiryTime.Should().BeCloseTo(DateTime.UtcNow.AddDays(30),
+                precision: TimeSpan.FromSeconds(10));
         }
     }
 
@@ -218,7 +219,10 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         using (var scope = _factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var user = new Usuario("Verify User", userEmail, "123", RolUsuario.User);
+            var user = new Usuario("Verify User",
+                userEmail,
+                "123",
+                RolUsuario.User);
             user.SetEmailVerificationToken(validToken); // <-- Asignamos el token
             await context.Usuarios.AddAsync(user);
             await context.SaveChangesAsync();
@@ -273,12 +277,15 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         // --- Arrange (Preparar) ---
         // 1. Creamos un usuario en la BD de prueba
         var email = "user-to-reset@test.com";
-        await _factory.CreateUserAndGetTokenAsync("Reset User", email, RolUsuario.User);
+        await _factory.CreateUserAndGetTokenAsync("Reset User",
+            email,
+            RolUsuario.User);
 
         var dto = new ForgotPasswordDto { Email = email };
 
         // --- Act (Actuar) ---
-        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/auth/forgot-password", dto);
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/auth/forgot-password",
+            dto);
 
         // --- Assert (Verificar) ---
         // 1. Verifica la respuesta de la API
@@ -292,7 +299,8 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         var user = await context.Usuarios.FirstAsync(u => u.Email == email);
 
         user.PasswordResetToken.Should().NotBeNullOrEmpty();
-        user.PasswordResetTokenExpiryTime.Should().BeCloseTo(DateTime.UtcNow.AddHours(1), precision: TimeSpan.FromSeconds(10));
+        user.PasswordResetTokenExpiryTime.Should().BeCloseTo(DateTime.UtcNow.AddHours(1),
+            precision: TimeSpan.FromSeconds(10));
     }
 
     [Fact]
@@ -302,7 +310,8 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         var dto = new ForgotPasswordDto { Email = "no-existe@test.com" };
 
         // --- Act (Actuar) ---
-        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/auth/forgot-password", dto);
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/auth/forgot-password",
+            dto);
 
         // --- Assert (Verificar) ---
         // La API debe devolver OK para no revelar que el email no existe
@@ -320,7 +329,9 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         var newPassword = "NewPassword123!";
 
         // 1. Creamos el usuario
-        var (userId, _) = await _factory.CreateUserAndGetTokenAsync("Test User", email, RolUsuario.User);
+        var (userId, _) = await _factory.CreateUserAndGetTokenAsync("Test User",
+            email,
+            RolUsuario.User);
 
         // 2. Obtenemos su hash de contraseña antiguo
         string oldHash;
@@ -330,14 +341,16 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
             var user = await context.Usuarios.FindAsync(userId);
             oldHash = user.PasswordHash; // Guardamos el hash antiguo
             // 3. Le asignamos el token manualmente
-            user.SetPasswordResetToken(validToken, DateTime.UtcNow.AddHours(1));
+            user.SetPasswordResetToken(validToken,
+                DateTime.UtcNow.AddHours(1));
             await context.SaveChangesAsync();
         }
 
         var dto = new ResetPasswordDto { Token = validToken, NewPassword = newPassword, ConfirmPassword = newPassword };
 
         // --- Act (Actuar) ---
-        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/auth/reset-password", dto);
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/auth/reset-password",
+            dto);
 
         // --- Assert (Verificar) ---
         // 1. Verifica la respuesta de la API
@@ -355,7 +368,8 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
             user.PasswordResetToken.Should().BeNull();
             // Verifica que la contraseña cambió
             user.PasswordHash.Should().NotBe(oldHash);
-            BCrypt.Net.BCrypt.Verify(newPassword, user.PasswordHash).Should().BeTrue();
+            BCrypt.Net.BCrypt.Verify(newPassword,
+                user.PasswordHash).Should().BeTrue();
         }
     }
 
@@ -366,7 +380,8 @@ public class AuthControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetime
         var dto = new ResetPasswordDto { Token = "token-que-no-existe", NewPassword = "NewPassword123!", ConfirmPassword = "NewPassword123!" };
 
         // --- Act (Actuar) ---
-        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/auth/reset-password", dto);
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/auth/reset-password",
+            dto);
 
         // --- Assert (Verificar) ---
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);

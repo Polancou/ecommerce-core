@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { CartItem, ProductDto, CartDto } from '@/types/dto';
+import type { CartItem, ProductDto, CartDto, ShippingAddress } from '@/types/dto';
 import { toast } from 'vue-sonner';
 import apiClient from '@/services/api';
 import { useAuthStore } from './auth';
@@ -8,6 +8,7 @@ export const useCartStore = defineStore('cart', {
     state: () => ({
         items: [] as CartItem[],
         isOpen: false,
+        selectedShippingAddress: null as ShippingAddress | null,
     }),
     persist: true,
     getters: {

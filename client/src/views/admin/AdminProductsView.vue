@@ -18,7 +18,7 @@ const pageSize = 10;
 const fetchProducts = async () => {
     loading.value = true;
     try {
-        const response = await apiClient.get<any>('/v1/products', {
+        const response = await apiClient.get<{ items: ProductDto[], totalPages: number, totalCount: number }>('/v1/products', {
             params: {
                 search: searchTerm.value,
                 page: currentPage.value,
@@ -80,7 +80,7 @@ onMounted(() => {
                     tienda.</p>
             </div>
             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex items-center gap-4">
-                 <!-- Search Bar -->
+                <!-- Search Bar -->
                 <div class="relative rounded-md shadow-sm">
                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -149,9 +149,10 @@ onMounted(() => {
                                 </tr>
                             </tbody>
                         </table>
-                        
+
                         <!-- Pagination -->
-                        <div class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
+                        <div
+                            class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
                             <div class="flex flex-1 justify-between sm:hidden">
                                 <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1"
                                     class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:border-gray-600">
@@ -165,28 +166,31 @@ onMounted(() => {
                             <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                                 <div>
                                     <p class="text-sm text-gray-700 dark:text-gray-300">
-                                        Mostrando <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> a
-                                        <span class="font-medium">{{ Math.min(currentPage * pageSize, totalCount) }}</span>
+                                        Mostrando <span class="font-medium">{{ (currentPage - 1) * pageSize + 1
+                                            }}</span> a
+                                        <span class="font-medium">{{ Math.min(currentPage * pageSize, totalCount)
+                                            }}</span>
                                         de <span class="font-medium">{{ totalCount }}</span> resultados
                                     </p>
                                 </div>
                                 <div>
-                                    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                                        aria-label="Pagination">
                                         <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1"
                                             class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-600 dark:hover:bg-gray-700">
                                             <span class="sr-only">Anterior</span>
                                             <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
                                         </button>
-                                        <button v-for="page in totalPages" :key="page" @click="changePage(page)"
-                                            :class="[
-                                                page === currentPage
-                                                    ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-                                                    : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700',
-                                                'relative inline-flex items-center px-4 py-2 text-sm font-semibold'
-                                            ]">
+                                        <button v-for="page in totalPages" :key="page" @click="changePage(page)" :class="[
+                                            page === currentPage
+                                                ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                                                : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700',
+                                            'relative inline-flex items-center px-4 py-2 text-sm font-semibold'
+                                        ]">
                                             {{ page }}
                                         </button>
-                                        <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages"
+                                        <button @click="changePage(currentPage + 1)"
+                                            :disabled="currentPage === totalPages"
                                             class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-600 dark:hover:bg-gray-700">
                                             <span class="sr-only">Siguiente</span>
                                             <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />

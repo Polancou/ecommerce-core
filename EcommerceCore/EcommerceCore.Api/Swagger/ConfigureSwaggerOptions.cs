@@ -14,7 +14,8 @@ public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider)
         foreach (var description in provider.ApiVersionDescriptions)
         {
             // Crea un nuevo documento de Swagger para cada versión.
-            options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
+            options.SwaggerDoc(description.GroupName,
+                CreateInfoForApiVersion(description));
         }
     }
 

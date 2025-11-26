@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import apiClient from '@/services/api';
 import BaseSkeleton from '@/components/common/BaseSkeleton.vue';
-import { ShoppingBagIcon, ChevronRightIcon } from '@heroicons/vue/24/outline';
+import { ShoppingBagIcon } from '@heroicons/vue/24/outline';
 
 interface OrderItem {
     productId: number;
@@ -138,7 +138,7 @@ const formatDate = (dateString: string) => {
                                 </div>
                             </div>
                             <p class="text-sm font-medium text-gray-900 dark:text-white">${{ item.unitPrice.toFixed(2)
-                                }}</p>
+                            }}</p>
                         </li>
                     </ul>
                 </div>

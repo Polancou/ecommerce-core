@@ -49,7 +49,9 @@ public class TestApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         // --- 1. Construir la Configuración ---
         Configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("appsettings.json",
+                optional: true,
+                reloadOnChange: true)
             .AddUserSecrets<Program>() 
             .AddEnvironmentVariables()
             .Build();
@@ -125,10 +127,14 @@ public class TestApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             // Añade un Mock que "finge" enviar correos exitosamente
             var mockEmailService = new Mock<IEmailService>();
             mockEmailService
-                .Setup(s => s.SendVerificationEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(s => s.SendVerificationEmailAsync(It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
             mockEmailService
-                .Setup(s => s.SendPasswordResetEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(s => s.SendPasswordResetEmailAsync(It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
             services.AddSingleton(mockEmailService.Object);
 
@@ -222,7 +228,10 @@ public class TestApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
 
-        var user = new Usuario(nombreCompleto: name, email: email, numeroTelefono: "123456789", rol: RolUsuario.User);
+        var user = new Usuario(nombreCompleto: name,
+            email: email,
+            numeroTelefono: "123456789",
+            rol: RolUsuario.User);
         user.EstablecerPasswordHash(passwordHash: BCrypt.Net.BCrypt.HashPassword("password123"));
         await context.Usuarios.AddAsync(user);
         await context.SaveChangesAsync();
@@ -240,7 +249,10 @@ public class TestApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
 
-        var user = new Usuario(nombreCompleto: name, email: email, numeroTelefono: "123456789", rol: rol);
+        var user = new Usuario(nombreCompleto: name,
+            email: email,
+            numeroTelefono: "123456789",
+            rol: rol);
         user.EstablecerPasswordHash(passwordHash: BCrypt.Net.BCrypt.HashPassword("password123"));
         await context.Usuarios.AddAsync(user);
         await context.SaveChangesAsync();

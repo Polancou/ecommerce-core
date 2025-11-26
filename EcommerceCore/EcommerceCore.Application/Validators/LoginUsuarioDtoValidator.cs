@@ -10,11 +10,11 @@ public class LoginUsuarioDtoValidator : AbstractValidator<LoginUsuarioDto>
 {
     public LoginUsuarioDtoValidator()
     {
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("El email es obligatorio.")
-            .EmailAddress().WithMessage("El formato del email no es válido.");
+        RuleFor(expression: x => x.Email)
+            .NotEmpty().WithMessage(errorMessage: "El email es obligatorio.")
+            .EmailAddress().WithMessage(errorMessage: "El formato del email no es válido.");
 
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("La contraseña es obligatoria.");
+        RuleFor(expression: x => x.Password)
+            .NotEmpty().WithMessage(errorMessage: "La contraseña es obligatoria.");
     }
 }
