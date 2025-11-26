@@ -152,7 +152,8 @@ public class ProfileServiceTests
         _mockDbContext.Setup(c => c.Usuarios.FindAsync(userId)).ReturnsAsync((Usuario)null);
 
         // --- Act (Actuar) ---
-        Func<Task> act = async () => await _profileService.ActualizarPerfilAsync(userId: userId, perfilDto: updateDto);
+        Func<Task> act = async () => await _profileService.ActualizarPerfilAsync(userId: userId,
+            perfilDto: updateDto);
 
         // --- Assert (Verificar) ---
         // 1. Verificamos que lanza la excepción
@@ -179,7 +180,10 @@ public class ProfileServiceTests
         var userId = 1;
         var oldPassword = "PasswordAntigua123!";
         var newPassword = "PasswordNueva456!";
-        var user = new Usuario("Test User", "test@email.com", "123", RolUsuario.User);
+        var user = new Usuario("Test User",
+            "test@email.com",
+            "123",
+            RolUsuario.User);
 
         // Establece el hash de la contraseña antigua en la entidad de usuario
         user.EstablecerPasswordHash(BCrypt.Net.BCrypt.HashPassword(oldPassword));
@@ -195,7 +199,8 @@ public class ProfileServiceTests
         _mockDbContext.Setup(c => c.Usuarios.FindAsync(userId)).ReturnsAsync(user);
 
         // --- Act (Actuar) ---
-        var result = await _profileService.CambiarPasswordAsync(userId, dto);
+        var result = await _profileService.CambiarPasswordAsync(userId,
+            dto);
 
         // --- Assert (Verificar) ---
         // 1. Verifica que la operación fue exitosa
@@ -204,10 +209,12 @@ public class ProfileServiceTests
 
         // 2. Verifica que el hash de la contraseña en la entidad fue actualizado
         user.PasswordHash.Should().NotBe(null);
-        BCrypt.Net.BCrypt.Verify(newPassword, user.PasswordHash).Should().BeTrue();
+        BCrypt.Net.BCrypt.Verify(newPassword,
+            user.PasswordHash).Should().BeTrue();
 
         // 3. Verifica que se llamó a SaveChanges
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     /// <summary>
@@ -222,7 +229,10 @@ public class ProfileServiceTests
         var correctOldPassword = "PasswordAntigua123!";
         var wrongOldPassword = "PasswordEquivocadaXXX";
 
-        var user = new Usuario("Test User", "test@email.com", "123", RolUsuario.User);
+        var user = new Usuario("Test User",
+            "test@email.com",
+            "123",
+            RolUsuario.User);
         user.EstablecerPasswordHash(BCrypt.Net.BCrypt.HashPassword(correctOldPassword));
 
         var dto = new CambiarPasswordDto
@@ -235,7 +245,8 @@ public class ProfileServiceTests
         _mockDbContext.Setup(c => c.Usuarios.FindAsync(userId)).ReturnsAsync(user);
 
         // --- Act (Actuar) ---
-        Func<Task> act = async () => await _profileService.CambiarPasswordAsync(userId, dto);
+        Func<Task> act = async () => await _profileService.CambiarPasswordAsync(userId,
+            dto);
 
         // --- Assert (Verificar) ---
         // 1. Verifica que la operación falló con la excepción y mensaje correctos
@@ -243,7 +254,8 @@ public class ProfileServiceTests
             .WithMessage("La contraseña actual es incorrecta.");
 
         // 2. Verifica que NO se llamó a SaveChanges
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     #endregion
@@ -256,7 +268,10 @@ public class ProfileServiceTests
         // --- Arrange (Preparar) ---
         var userId = 1;
         var fakeFileUrl = "/uploads/avatars/fake-guid.jpg";
-        var usuario = new Usuario(nombreCompleto: "Test User", email: "test@email.com", numeroTelefono: "123", rol: RolUsuario.User);
+        var usuario = new Usuario(nombreCompleto: "Test User",
+            email: "test@email.com",
+            numeroTelefono: "123",
+            rol: RolUsuario.User);
 
         // Simula un IFormFile
         var mockFileStream = new MemoryStream("fake-image-data"u8.ToArray());
@@ -275,7 +290,8 @@ public class ProfileServiceTests
             .ReturnsAsync(fakeFileUrl);
 
         // --- Act (Actuar) ---
-        var resultUrl = await _profileService.UploadAvatarAsync(userId: userId, file: mockFile.Object);
+        var resultUrl = await _profileService.UploadAvatarAsync(userId: userId,
+            file: mockFile.Object);
 
         // --- Assert (Verificar) ---
         // 1. Verifica que la URL devuelta sea la esperada
@@ -285,10 +301,13 @@ public class ProfileServiceTests
         usuario.AvatarUrl.Should().Be(fakeFileUrl);
 
         // 3. Verifica que el servicio de almacenamiento fue llamado
-        _mockFileStorage.Verify(s => s.SaveFileAsync(It.IsAny<Stream>(), It.IsAny<string>()), Times.Once);
+        _mockFileStorage.Verify(s => s.SaveFileAsync(It.IsAny<Stream>(),
+                It.IsAny<string>()),
+            Times.Once);
 
         // 4. Verifica que los cambios se guardaron en la BD
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     #endregion

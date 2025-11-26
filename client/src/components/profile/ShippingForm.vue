@@ -9,8 +9,15 @@ import BaseButton from '@/components/common/BaseButton.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { toast } from 'vue-sonner';
 
+const props = defineProps<{
+    isModal?: boolean;
+}>();
+
+const emit = defineEmits(['saved']);
+
 const loading = ref(false);
 const initialValues = ref({
+    name: 'Casa',
     addressLine1: '',
     addressLine2: '',
     city: '',
@@ -20,6 +27,7 @@ const initialValues = ref({
 });
 
 const schema = toTypedSchema(z.object({
+    name: z.string().nonempty('El nombre es obligatorio (ej. Casa, Oficina).'),
     addressLine1: z.string().nonempty('La dirección es obligatoria.'),
     addressLine2: z.string().optional(),
     city: z.string().nonempty('La ciudad es obligatoria.'),
@@ -29,26 +37,32 @@ const schema = toTypedSchema(z.object({
 }));
 
 onMounted(async () => {
+    if (props.isModal) return; // Don't fetch if adding new in modal
+
     loading.value = true;
     try {
+        // This endpoint now returns a list, but for Profile view we might want the "default" or first one?
+        // Or we should update ProfileView to also use AddressSelection?
+        // For now, let's keep it simple: ProfileView might break if we don't handle the list return.
+        // The backend GET /v1/shipping now returns IEnumerable<ShippingAddressDto>.
+        // So we need to handle that.
         const response = await apiClient.get('/v1/shipping');
-        if (response.data) {
-            initialValues.value = response.data;
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+            initialValues.value = response.data[0];
         }
     } catch (error) {
         console.error('Error loading shipping address:', error);
-        // Don't show error toast if it's just 204 No Content (handled in controller)
-        // But controller returns 204 if null, axios might treat it as success with empty data or null
     } finally {
         loading.value = false;
     }
 });
 
-const handleSubmit = async (values: any) => {
+const handleSubmit = async (values: Record<string, unknown>) => {
     loading.value = true;
     try {
         await apiClient.post('/v1/shipping', values);
-        toast.success('Dirección de envío guardada correctamente.');
+        toast.success('Dirección guardada correctamente.');
+        emit('saved');
     } catch (error) {
         console.error('Error saving shipping address:', error);
         toast.error('Error al guardar la dirección.');
@@ -59,8 +73,8 @@ const handleSubmit = async (values: any) => {
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
+    <div :class="[isModal ? '' : 'bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg']">
+        <div v-if="!isModal" class="px-4 py-5 sm:px-6">
             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                 Dirección de Envío
             </h3>
@@ -68,13 +82,17 @@ const handleSubmit = async (values: any) => {
                 Esta dirección se utilizará para tus pedidos.
             </p>
         </div>
-        <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
-            <div v-if="loading && !initialValues.addressLine1" class="flex justify-center py-8">
+        <div :class="[isModal ? '' : 'border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6']">
+            <div v-if="loading && !initialValues.addressLine1 && !isModal" class="flex justify-center py-8">
                 <LoadingSpinner />
             </div>
 
             <Form v-else @submit="handleSubmit" :validation-schema="schema" :initial-values="initialValues"
                 class="space-y-4">
+
+                <BaseInput name="name" label="Nombre (ej. Casa, Oficina)" id="name" type="text"
+                    placeholder="Ej. Casa" />
+
                 <BaseInput name="addressLine1" label="Dirección (Calle y número)" id="addressLine1" type="text"
                     placeholder="Ej. Av. Reforma 123" />
                 <BaseInput name="addressLine2" label="Apartamento, suite, etc. (Opcional)" id="addressLine2" type="text"

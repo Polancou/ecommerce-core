@@ -26,8 +26,10 @@ public class OrderServiceTests
         var userId = 1;
         var orders = new List<Order>
         {
-            new(userId, 100),
-            new(2, 200) // Other user
+            new(userId,
+                100),
+            new(2,
+                200) // Other user
         };
         _mockDbContext.Setup(c => c.Orders).ReturnsDbSet(orders);
 
@@ -60,7 +62,12 @@ public class OrderServiceTests
     {
         // Arrange
         var userId = 1;
-        var product = new Product("Prod 1", "Desc", 100, 10, "url", "Cat");
+        var product = new Product("Prod 1",
+            "Desc",
+            100,
+            10,
+            "url",
+            "Cat");
 
         var cart = new Cart(userId);
         // Reflection to add items directly or mock Include properly (Mocking Include is hard with Moq.EntityFrameworkCore, 
@@ -68,8 +75,10 @@ public class OrderServiceTests
         // the service uses the navigation properties which are objects in memory).
 
         // Let's manually construct the object graph
-        var cartItem = new CartItem(1, 2); // 2 qty
-        cartItem.GetType().GetProperty("Product")!.SetValue(cartItem, product);
+        var cartItem = new CartItem(1,
+            2); // 2 qty
+        cartItem.GetType().GetProperty("Product")!.SetValue(cartItem,
+            product);
 
         // Add item to cart using reflection or internal list if exposed, but Cart has private collection.
         // Cart.AddItem adds to internal list. But we need to ensure 'Items' property is populated.
@@ -91,7 +100,8 @@ public class OrderServiceTests
         result.TotalAmount.Should().Be(200); // 100 * 2
         product.Stock.Should().Be(8); // 10 - 2
 
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -99,19 +109,23 @@ public class OrderServiceTests
     {
         // Arrange
         var orderId = 1;
-        var order = new Order(1, 100);
+        var order = new Order(1,
+            100);
         // Reflection to set ID since it's private set
-        order.GetType().GetProperty("Id")!.SetValue(order, orderId);
+        order.GetType().GetProperty("Id")!.SetValue(order,
+            orderId);
 
         var orders = new List<Order> { order };
         _mockDbContext.Setup(c => c.Orders.FindAsync(orderId)).ReturnsAsync(order);
 
         // Act
-        await _orderService.UpdateOrderStatusAsync(orderId, OrderStatus.Shipped);
+        await _orderService.UpdateOrderStatusAsync(orderId,
+            OrderStatus.Shipped);
 
         // Assert
         order.Status.Should().Be(OrderStatus.Shipped);
-        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -122,7 +136,8 @@ public class OrderServiceTests
         _mockDbContext.Setup(c => c.Orders.FindAsync(orderId)).ReturnsAsync((Order?)null);
 
         // Act
-        Func<Task> act = async () => await _orderService.UpdateOrderStatusAsync(orderId, OrderStatus.Delivered);
+        Func<Task> act = async () => await _orderService.UpdateOrderStatusAsync(orderId,
+            OrderStatus.Delivered);
 
         // Assert
         await act.Should().ThrowAsync<KeyNotFoundException>().WithMessage("Pedido no encontrado.");

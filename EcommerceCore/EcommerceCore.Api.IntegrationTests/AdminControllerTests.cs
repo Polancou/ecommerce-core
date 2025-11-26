@@ -39,7 +39,9 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
     {
         // 1. Crea un usuario Admin y obtén su token
         var (adminId, adminToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Admin", email: "admin@test.com", rol: RolUsuario.Admin);
+            name: "Admin",
+            email: "admin@test.com",
+            rol: RolUsuario.Admin);
 
         // 2. Crea el resto de usuarios regulares
         // (totalUsers - 1 porque el admin ya cuenta como 1)
@@ -47,12 +49,15 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         for (int i = 1; i < totalUsers; i++)
         {
             userTasks.Add(_factory.CreateUserAndGetTokenAsync(
-                name: $"User {i}", email: $"user{i}@test.com", rol: RolUsuario.User));
+                name: $"User {i}",
+                email: $"user{i}@test.com",
+                rol: RolUsuario.User));
         }
         await Task.WhenAll(userTasks);
 
         // 3. Configura el cliente HTTP con el token de Admin
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         return adminToken;
     }
@@ -140,10 +145,13 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         // --- Arrange (Preparar) ---
         // 1. Crea un usuario regular (User) y obtén su token
         var (userId, userToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Regular User", email: "user@test.com", rol: RolUsuario.User);
+            name: "Regular User",
+            email: "user@test.com",
+            rol: RolUsuario.User);
 
         // 2. Configura el cliente HTTP con el token de User
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: userToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: userToken);
 
         // --- Act (Actuar) ---
         // Llama al endpoint paginado
@@ -187,13 +195,18 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         // --- Arrange (Preparar) ---
         // 1. Crea un usuario Admin y obtén su token
         var (adminId, adminToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Admin", email: "admin@test.com", rol: RolUsuario.Admin);
+            name: "Admin",
+            email: "admin@test.com",
+            rol: RolUsuario.Admin);
         // 2. Crea el usuario a eliminar
         var (userIdToDelete, userToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "User to delete", email: "user@test.com", rol: RolUsuario.User);
+            name: "User to delete",
+            email: "user@test.com",
+            rol: RolUsuario.User);
 
         // 3. Configura el cliente HTTP con el token de Admin
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         // --- Act (Actuar) ---
         // 4. Llama al endpoint de eliminación
@@ -220,10 +233,13 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         // --- Arrange (Preparar) ---
         // 1. Crea un usuario Admin y obtén su token
         var (adminId, adminToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Admin", email: "admin@test.com", rol: RolUsuario.Admin);
+            name: "Admin",
+            email: "admin@test.com",
+            rol: RolUsuario.Admin);
 
         // 2. Configura el cliente HTTP con el token de Admin
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         // --- Act (Actuar) ---
         // 3. Llama al endpoint intentando borrarse a sí mismo
@@ -253,8 +269,11 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
     {
         // --- Arrange (Preparar) ---
         var (adminId, adminToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Admin", email: "admin@test.com", rol: RolUsuario.Admin);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+            name: "Admin",
+            email: "admin@test.com",
+            rol: RolUsuario.Admin);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         var nonExistentUserId = 999;
 
@@ -277,14 +296,19 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         // --- Arrange (Preparar) ---
         // 1. Crea un usuario regular (User) y obtén su token
         var (userId, userToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Regular User", email: "user@test.com", rol: RolUsuario.User);
+            name: "Regular User",
+            email: "user@test.com",
+            rol: RolUsuario.User);
 
         // 2. Crea un segundo usuario para que el primero intente borrarlo
         var (userIdToDelete, _) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Victim User", email: "victim@test.com", rol: RolUsuario.User);
+            name: "Victim User",
+            email: "victim@test.com",
+            rol: RolUsuario.User);
 
         // 3. Configura el cliente HTTP con el token de User
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: userToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: userToken);
 
         // --- Act (Actuar) ---
         var response = await _client.DeleteAsync(requestUri: $"/api/{ApiVersion}/admin/users/{userIdToDelete}");
@@ -307,17 +331,23 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         // --- Arrange (Preparar) ---
         // 1. Crea un usuario regular (User) y obtén su token
         var (userId, userToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Regular User", email: "user@test.com", rol: RolUsuario.User);
+            name: "Regular User",
+            email: "user@test.com",
+            rol: RolUsuario.User);
 
         // 2. Crea un segundo usuario para que el primero intente borrarlo
         var (userIdToUpdate, _) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Victim User", email: "victim@test.com", rol: RolUsuario.User);
+            name: "Victim User",
+            email: "victim@test.com",
+            rol: RolUsuario.User);
 
         // 3. Configura el cliente HTTP con el token de User
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: userToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: userToken);
 
         // --- Act (Actuar) ---
-        var response = await _client.PutAsync(requestUri: $"/api/{ApiVersion}/admin/users/{userIdToUpdate}/role", content: new StringContent("Admin"));
+        var response = await _client.PutAsync(requestUri: $"/api/{ApiVersion}/admin/users/{userIdToUpdate}/role",
+            content: new StringContent("Admin"));
 
         // --- Assert (Verificar) ---
         response.StatusCode.Should().Be(expected: HttpStatusCode.Forbidden);
@@ -334,7 +364,8 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         _client.DefaultRequestHeaders.Authorization = null;
 
         // --- Act (Actuar) ---
-        var response = await _client.PutAsync(requestUri: $"/api/{ApiVersion}/admin/users/1/role", content: new StringContent("Admin"));
+        var response = await _client.PutAsync(requestUri: $"/api/{ApiVersion}/admin/users/1/role",
+            content: new StringContent("Admin"));
 
         // --- Assert (Verificar) ---
         response.StatusCode.Should().Be(expected: HttpStatusCode.Unauthorized);
@@ -349,8 +380,11 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
     {
         // --- Arrange (Preparar) ---
         var (adminId, adminToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Admin", email: "admin@test.com", rol: RolUsuario.Admin);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+            name: "Admin",
+            email: "admin@test.com",
+            rol: RolUsuario.Admin);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         var nonExistentUserId = 999;
 
@@ -361,7 +395,8 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         };
 
         // 4. Configura el cliente HTTP con el token de Admin
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         // --- Act (Actuar) ---
         var response = await _client.PutAsJsonAsync(requestUri: $"/api/{ApiVersion}/admin/users/{nonExistentUserId}/role",
@@ -385,10 +420,14 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         var newRole = RolUsuario.Admin;
         // 1. Crea un usuario Admin y obtén su token
         var (adminId, adminToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Admin", email: "admin@test.com", rol: RolUsuario.Admin);
+            name: "Admin",
+            email: "admin@test.com",
+            rol: RolUsuario.Admin);
         // 2. Crea el usuario a eliminar
         var (userIdToUpdate, userToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "User to delete", email: "user@test.com", rol: RolUsuario.User);
+            name: "User to delete",
+            email: "user@test.com",
+            rol: RolUsuario.User);
 
         // 3. Se crea el DTO con los nuevos datos del perfil.
         var updateDto = new ActualizarRolUsuarioDto
@@ -397,7 +436,8 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         };
 
         // 4. Configura el cliente HTTP con el token de Admin
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         // --- Act (Actuar) ---
         var response = await _client.PutAsJsonAsync(requestUri: $"/api/{ApiVersion}/admin/users/{userIdToUpdate}/role",
@@ -423,8 +463,11 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
     {
         // --- Arrange (Preparar) ---
         var (adminId, adminToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Admin", email: "admin@test.com", rol: RolUsuario.Admin);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+            name: "Admin",
+            email: "admin@test.com",
+            rol: RolUsuario.Admin);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         // 3. Se crea el DTO con los nuevos datos del perfil.
         var updateDto = new ActualizarRolUsuarioDto
@@ -433,7 +476,8 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
         };
 
         // 4. Configura el cliente HTTP con el token de Admin
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: adminToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: adminToken);
 
         // --- Act (Actuar) ---
         var response = await _client.PutAsJsonAsync(requestUri: $"/api/{ApiVersion}/admin/users/{adminId}/role",
@@ -457,16 +501,23 @@ public class AdminControllerTests : IClassFixture<TestApiFactory>, IAsyncLifetim
     {
         // 1. Crea un admin y obtén su token
         var (adminId, adminToken) = await _factory.CreateUserAndGetTokenAsync(
-            name: "Admin User", email: "admin@test.com", rol: RolUsuario.Admin);
+            name: "Admin User",
+            email: "admin@test.com",
+            rol: RolUsuario.Admin);
 
         // 2. Crea usuarios específicos para buscar
         await _factory.CreateUserAndGetTokenAsync(
-            name: "Juan Perez", email: "juan@test.com", rol: RolUsuario.User);
+            name: "Juan Perez",
+            email: "juan@test.com",
+            rol: RolUsuario.User);
         await _factory.CreateUserAndGetTokenAsync(
-            name: "Maria Garcia", email: "maria@test.com", rol: RolUsuario.User);
+            name: "Maria Garcia",
+            email: "maria@test.com",
+            rol: RolUsuario.User);
 
         // 3. Configura el cliente con el token de admin
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            adminToken);
         return adminToken;
     }
 

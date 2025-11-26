@@ -36,7 +36,9 @@ public class AuthResult
     /// <returns>Una instancia de AuthResult que representa el éxito.</returns>
     public static AuthResult Ok(string token, string message = "Operación exitosa.")
     {
-        return new AuthResult(true, message, token);
+        return new AuthResult(true,
+            message,
+            token);
     }
 
     /// <summary>
@@ -46,6 +48,7 @@ public class AuthResult
     /// <returns>Una instancia de AuthResult que representa la falla.</returns>
     public static AuthResult Fail(string message)
     {
-        return new AuthResult(false, message);
+        return new AuthResult(false,
+            message);
     }
 }

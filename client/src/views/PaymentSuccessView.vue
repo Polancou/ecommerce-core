@@ -27,8 +27,9 @@ onMounted(async () => {
 
     try {
         // Confirm payment and create order
-        const response = await apiClient.post<any>('/v1/payments/confirm', {
-            paymentIntentId: paymentIntentId
+        const response = await apiClient.post<{ id: number }>('/v1/payments/confirm', {
+            paymentIntentId: paymentIntentId,
+            shippingAddress: cartStore.selectedShippingAddress
         });
 
         orderId.value = response.data.id;
@@ -36,9 +37,14 @@ onMounted(async () => {
 
         // Clear local cart
         cartStore.clearCart();
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error confirming payment:', err);
-        error.value = err.response?.data?.message || 'Error al procesar el pedido.';
+        if (err && typeof err === 'object' && 'response' in err) {
+            const errorResponse = (err as { response: { data: { message: string } } }).response;
+            error.value = errorResponse?.data?.message || 'Error al procesar el pedido.';
+        } else {
+            error.value = 'Error al procesar el pedido.';
+        }
     } finally {
         loading.value = false;
     }

@@ -5,7 +5,6 @@ import type { ProductDto } from '@/types/dto';
 import { ShoppingCartIcon, MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 import apiClient from '@/services/api';
 import { toast } from 'vue-sonner';
-import BaseInput from '@/components/common/BaseInput.vue';
 import { getImageUrl } from '@/utils/image';
 
 const cartStore = useCartStore();
@@ -22,7 +21,7 @@ const pageSize = 9; // 3x3 grid
 const fetchProducts = async () => {
   loading.value = true;
   try {
-    const response = await apiClient.get<any>('/v1/products', {
+    const response = await apiClient.get<{ items: ProductDto[], totalPages: number, totalCount: number }>('/v1/products', {
       params: {
         search: searchTerm.value,
         page: currentPage.value,

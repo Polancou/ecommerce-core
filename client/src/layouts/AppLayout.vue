@@ -8,7 +8,6 @@ import { useCartStore } from '@/stores/cart';
 import {
   UserIcon,
   ShoppingBagIcon,
-  ShieldCheckIcon,
   Cog6ToothIcon,
   ShoppingCartIcon,
   Bars3Icon,

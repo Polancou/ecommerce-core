@@ -1,9 +1,10 @@
 <template>
-  <div v-if="cartStore.isOpen" class="relative z-50" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+  <div v-if="cartStore.isOpen" class="relative z-[100]" aria-labelledby="slide-over-title" role="dialog"
+    aria-modal="true">
     <!-- Background backdrop -->
     <div class="fixed inset-0 bg-gray-500/75 transition-opacity" @click="cartStore.closeCart()"></div>
 
-    <div class="fixed inset-0 overflow-hidden">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
       <div class="absolute inset-0 overflow-hidden">
         <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
           <div class="pointer-events-auto w-screen max-w-md">

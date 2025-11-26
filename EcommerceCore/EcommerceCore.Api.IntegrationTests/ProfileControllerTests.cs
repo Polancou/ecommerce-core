@@ -179,8 +179,10 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
     {
         // --- Arrange (Preparar) ---
         // El helper CreateUserAndGetTokenAsync usa "password123" como contraseña por defecto
-        var (userId, token) = await _factory.CreateUserAndGetTokenAsync(name: "User", email: "pass.test@email.com");
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: token);
+        var (userId, token) = await _factory.CreateUserAndGetTokenAsync(name: "User",
+            email: "pass.test@email.com");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer",
+            parameter: token);
 
         var dto = new CambiarPasswordDto
         {
@@ -190,7 +192,8 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
         };
 
         // --- Act (Actuar) ---
-        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/profile/change-password", dto);
+        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/profile/change-password",
+            dto);
 
         // --- Assert (Verificar) ---
         // 1. Verifica la respuesta HTTP
@@ -203,7 +206,8 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var updatedUser = await context.Usuarios.FindAsync(userId);
-        BCrypt.Net.BCrypt.Verify(dto.NewPassword, updatedUser.PasswordHash).Should().BeTrue();
+        BCrypt.Net.BCrypt.Verify(dto.NewPassword,
+            updatedUser.PasswordHash).Should().BeTrue();
     }
 
     /// <summary>
@@ -213,8 +217,10 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
     public async Task ChangePassword_WithWrongOldPassword_ShouldReturnBadRequest()
     {
         // --- Arrange (Preparar) ---
-        var (userId, token) = await _factory.CreateUserAndGetTokenAsync(name: "User", email: "pass.wrong@email.com");
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var (userId, token) = await _factory.CreateUserAndGetTokenAsync(name: "User",
+            email: "pass.wrong@email.com");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            token);
 
         var dto = new CambiarPasswordDto
         {
@@ -224,7 +230,8 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
         };
 
         // --- Act (Actuar) ---
-        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/profile/change-password", dto);
+        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/profile/change-password",
+            dto);
 
         // --- Assert (Verificar) ---
         // Obtenemos el cuerpo de la respuesta desde JSON
@@ -245,8 +252,10 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
     public async Task ChangePassword_WithMismatchedNewPasswords_ShouldReturnBadRequest()
     {
         // --- Arrange (Preparar) ---
-        var (userId, token) = await _factory.CreateUserAndGetTokenAsync("User", "pass.mismatch@email.com");
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var (userId, token) = await _factory.CreateUserAndGetTokenAsync("User",
+            "pass.mismatch@email.com");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            token);
 
         var dto = new CambiarPasswordDto
         {
@@ -256,7 +265,8 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
         };
 
         // --- Act (Actuar) ---
-        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/profile/change-password", dto);
+        var response = await _client.PutAsJsonAsync($"/api/{ApiVersion}/profile/change-password",
+            dto);
 
         // --- Assert (Verificar) ---
         // 1. Verifica la respuesta HTTP 400
@@ -280,8 +290,11 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
     {
         // --- Arrange (Preparar) ---
         // 1. Crea un usuario y obtén su token
-        var (userId, token) = await _factory.CreateUserAndGetTokenAsync("Avatar User", "avatar@test.com", Domain.Models.RolUsuario.User);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var (userId, token) = await _factory.CreateUserAndGetTokenAsync("Avatar User",
+            "avatar@test.com",
+            Domain.Models.RolUsuario.User);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            token);
 
         // 2. Crea el contenido del formulario (multipart/form-data)
         // Usa bytes reales de un encabezado JPEG
@@ -293,10 +306,13 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
 
         // El nombre "file" DEBE coincidir con el parámetro [FromForm] IFormFile file
-        content.Add(fileContent, "file", "test-avatar.jpg");
+        content.Add(fileContent,
+            "file",
+            "test-avatar.jpg");
 
         // --- Act (Actuar) ---
-        var response = await _client.PostAsync(requestUri: $"/api/{ApiVersion}/profile/avatar", content: content);
+        var response = await _client.PostAsync(requestUri: $"/api/{ApiVersion}/profile/avatar",
+            content: content);
 
         // --- Assert (Verificar) ---
         // 1. Verifica la respuesta HTTP 200 OK
@@ -325,10 +341,13 @@ public class ProfileControllerTests : IClassFixture<TestApiFactory>, IAsyncLifet
         // --- Arrange (Preparar) ---
         _client.DefaultRequestHeaders.Authorization = null;
         using var content = new MultipartFormDataContent();
-        content.Add(new StringContent("empty"), "file", "test.jpg");
+        content.Add(new StringContent("empty"),
+            "file",
+            "test.jpg");
 
         // --- Act (Actuar) ---
-        var response = await _client.PostAsync($"/api/{ApiVersion}/profile/avatar", content);
+        var response = await _client.PostAsync($"/api/{ApiVersion}/profile/avatar",
+            content);
 
         // --- Assert (Verificar) ---
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

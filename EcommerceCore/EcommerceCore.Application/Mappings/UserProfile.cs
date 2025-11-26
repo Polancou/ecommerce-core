@@ -22,12 +22,12 @@ public class UserProfile : Profile
             // Ignoramos la propiedad 'Password' del DTO, ya que no queremos mapearla directamente.
             // El hasheo y asignación de la contraseña se maneja de forma explícita en la capa de servicio
             // por razones de seguridad y claridad.
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
+            .ForMember(dest => dest.PasswordHash,
+                opt => opt.Ignore());
 
 
         // --- Mapeo de Entidad a DTO de Perfil ---
 
-        // <summary>
         // Define el mapeo desde la entidad (Usuario) hacia el DTO de perfil público (PerfilUsuarioDto).
         // Esto se utiliza para transformar el objeto de la base de datos en un objeto seguro
         // que puede ser devuelto al cliente, sin exponer datos sensibles como el PasswordHash.
