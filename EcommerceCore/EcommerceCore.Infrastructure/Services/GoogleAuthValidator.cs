@@ -4,15 +4,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace EcommerceCore.Infrastructure.Services;
 
-public class GoogleAuthValidator : IExternalAuthValidator
+public class GoogleAuthValidator(IConfiguration configuration) : IExternalAuthValidator
 {
-    private readonly IConfiguration _configuration;
-
-    public GoogleAuthValidator(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
     /// <summary>
     /// Valida un token de ID de un proveedor externo y extrae la información del usuario.
     /// </summary>
@@ -21,7 +14,7 @@ public class GoogleAuthValidator : IExternalAuthValidator
     public async Task<ExternalAuthUserInfo> ValidateTokenAsync(string idToken)
     {
         // Obtenemos la clave pública de Google.
-        var googleClientId = _configuration["Authentication:Google:ClientId"];
+        var googleClientId = configuration[key: "Authentication:Google:ClientId"];
         // Creamos la configuración de validación para el token de Google.
         var settings = new GoogleJsonWebSignature.ValidationSettings()
         {
@@ -31,7 +24,8 @@ public class GoogleAuthValidator : IExternalAuthValidator
         try
         {   
             // Validamos el token de Google.
-            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+            var payload = await GoogleJsonWebSignature.ValidateAsync(jwt: idToken,
+                validationSettings: settings);
             // Si el token es válido, devolvemos la información del usuario.
             return new ExternalAuthUserInfo
             {

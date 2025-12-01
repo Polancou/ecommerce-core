@@ -111,10 +111,12 @@ public class Usuario
     {
         // Verifica que el nombre completo no sea nulo o vacío.
         if (string.IsNullOrWhiteSpace(nombreCompleto))
-            throw new ArgumentNullException(nameof(nombreCompleto), "El nombre completo es obligatorio.");
+            throw new ArgumentNullException(nameof(nombreCompleto),
+                "El nombre completo es obligatorio.");
         // Verifica que el email no sea nulo o vacío.
         if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentNullException(nameof(email), "El email es obligatorio.");
+            throw new ArgumentNullException(nameof(email),
+                "El email es obligatorio.");
         // Establece los valores de la entidad.
         NombreCompleto = nombreCompleto;
         Email = email;
@@ -135,7 +137,8 @@ public class Usuario
     public void EstablecerPasswordHash(string passwordHash)
     {
         if (string.IsNullOrWhiteSpace(passwordHash))
-            throw new ArgumentNullException(nameof(passwordHash), "El hash de la contraseña no puede estar vacío.");
+            throw new ArgumentNullException(nameof(passwordHash),
+                "El hash de la contraseña no puede estar vacío.");
 
         PasswordHash = passwordHash;
     }
@@ -146,7 +149,8 @@ public class Usuario
     public void ActualizarNumeroTelefono(string nuevoNumero)
     {
         if (string.IsNullOrWhiteSpace(nuevoNumero))
-            throw new ArgumentException("El nuevo número de teléfono no puede estar vacío.", nameof(nuevoNumero));
+            throw new ArgumentException("El nuevo número de teléfono no puede estar vacío.",
+                nameof(nuevoNumero));
 
         NumeroTelefono = nuevoNumero;
     }

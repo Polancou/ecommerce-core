@@ -348,7 +348,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token, isLoading, error, isAuthenticated, userProfile, userRole, isAdmin,
+    token, isLoading, error, isAuthenticated, userProfile, user: userProfile, userRole, isAdmin,
     login, logout, logoutLocally, register, fetchProfile, updateProfile, changePassword, uploadAvatar,
     refreshAccessToken, handleGoogleLogin, forgotPassword, resetPassword, checkAuthOnStart
   }

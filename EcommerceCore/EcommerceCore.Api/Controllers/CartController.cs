@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Asp.Versioning;
 using EcommerceCore.Application.DTOs;
 using EcommerceCore.Application.Interfaces;
@@ -8,55 +7,53 @@ using Microsoft.AspNetCore.Mvc;
 namespace EcommerceCore.Api.Controllers;
 
 [Authorize]
-[ApiController]
-[Route("api/v{version:apiVersion}/[controller]")]
-[ApiVersion("1.0")]
-public class CartController(ICartService cartService) : ControllerBase
+[ApiVersion(version: "1.0")]
+public class CartController(ICartService cartService) : BaseApiController
 {
     /// <summary>
     /// Obtiene el carrito actual del usuario.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<CartDto>> GetCart()
+    public async Task<IActionResult> GetCart()
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var cart = await cartService.GetCartAsync(userId);
-        return Ok(cart);
+        var cart = await cartService.GetCartAsync(userId: UserId);
+        return Ok(value: cart);
     }
 
     /// <summary>
     /// Sincroniza el carrito local (frontend) con el carrito del servidor.
     /// </summary>
-    [HttpPost("sync")]
-    public async Task<ActionResult<CartDto>> SyncCart([FromBody] List<AddToCartDto> localItems)
+    [HttpPost(template: "sync")]
+    public async Task<IActionResult> SyncCart([FromBody] List<AddToCartDto> localItems)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var cart = await cartService.SyncCartAsync(userId, localItems);
-        return Ok(cart);
+        var cart = await cartService.SyncCartAsync(userId: UserId,
+            localItems: localItems);
+        return Ok(value: cart);
     }
 
     /// <summary>
     /// Agrega un ítem al carrito.
     /// </summary>
-    [HttpPost("items")]
-    public async Task<ActionResult<CartDto>> AddItem([FromBody] AddToCartDto itemDto)
+    [HttpPost(template: "items")]
+    public async Task<IActionResult> AddItem([FromBody] AddToCartDto itemDto)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var cart = await cartService.AddItemAsync(userId, itemDto);
-        return Ok(cart);
+        var cart = await cartService.AddItemAsync(userId: UserId,
+            dto: itemDto);
+        return Ok(value: cart);
     }
 
     /// <summary>
     /// Actualiza la cantidad de un ítem en el carrito.
     /// </summary>
-    [HttpPut("items")]
-    public async Task<ActionResult<CartDto>> UpdateItem([FromBody] AddToCartDto itemDto)
+    [HttpPut(template: "items")]
+    public async Task<IActionResult> UpdateItem([FromBody] AddToCartDto itemDto)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         try
         {
-            var cart = await cartService.UpdateItemQuantityAsync(userId, itemDto.ProductId, itemDto.Quantity);
-            return Ok(cart);
+            var cart = await cartService.UpdateItemQuantityAsync(userId: UserId,
+                productId: itemDto.ProductId,
+                quantity: itemDto.Quantity);
+            return Ok(value: cart);
         }
         catch (KeyNotFoundException)
         {
@@ -67,14 +64,14 @@ public class CartController(ICartService cartService) : ControllerBase
     /// <summary>
     /// Elimina un ítem del carrito.
     /// </summary>
-    [HttpDelete("items/{productId}")]
-    public async Task<ActionResult<CartDto>> RemoveItem(int productId)
+    [HttpDelete(template: "items/{productId}")]
+    public async Task<IActionResult> RemoveItem(int productId)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         try
         {
-            var cart = await cartService.RemoveItemAsync(userId, productId);
-            return Ok(cart);
+            var cart = await cartService.RemoveItemAsync(userId: UserId,
+                productId: productId);
+            return Ok(value: cart);
         }
         catch (KeyNotFoundException)
         {

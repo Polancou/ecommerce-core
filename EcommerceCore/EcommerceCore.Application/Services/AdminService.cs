@@ -17,13 +17,13 @@ public class AdminService(IApplicationDbContext context, IMapper mapper) : IAdmi
     {
         // Verificamos que el usuario no sea el administrador.
         if (userId == currentAdminId)
-            throw new ValidationException("No se puede eliminar el administrador.");
+            throw new ValidationException(message: "No se puede eliminar el administrador.");
         // Intentamos obtener el usuario a eliminar.
-        var usuario = await context.Usuarios.FindAsync(userId);
+        var usuario = await context.Usuarios.FindAsync(keyValues: userId);
         // Si no se encontró, lanza una excepción.
-        if (usuario == null) throw new NotFoundException("No se encontró el usuario.");
+        if (usuario == null) throw new NotFoundException(message: "No se encontró el usuario.");
         // Eliminamos el usuario del sistema.
-        context.Usuarios.Remove(usuario);
+        context.Usuarios.Remove(entity: usuario);
         // Guardamos los cambios en la base de datos.
         try
         {
@@ -31,7 +31,7 @@ public class AdminService(IApplicationDbContext context, IMapper mapper) : IAdmi
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new ValidationException("Este usuario fue modificado por otra persona. Por favor, recarga la página e intenta de nuevo.");
+            throw new ValidationException(message: "Este usuario fue modificado por otra persona. Por favor, recarga la página e intenta de nuevo.");
         }
     }
 
@@ -50,10 +50,10 @@ public class AdminService(IApplicationDbContext context, IMapper mapper) : IAdmi
         IQueryable<Usuario> query = context.Usuarios;
 
         // Aplicamos el filtro de búsqueda
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        if (!string.IsNullOrWhiteSpace(value: searchTerm))
         {
             var lowerSearchTerm = searchTerm.Trim().ToLower();
-            query = query.Where(u =>
+            query = query.Where(predicate: u =>
                 u.NombreCompleto.ToLower().Contains(lowerSearchTerm) ||
                 u.Email.ToLower().Contains(lowerSearchTerm)
             );
@@ -62,7 +62,7 @@ public class AdminService(IApplicationDbContext context, IMapper mapper) : IAdmi
         // Aplicamos el filtro de Rol
         if (rol.HasValue)
         {
-            query = query.Where(u => u.Rol == rol.Value);
+            query = query.Where(predicate: u => u.Rol == rol.Value);
         }
 
         // Obtenemos el conteo total después de aplicar los filtros.
@@ -70,13 +70,13 @@ public class AdminService(IApplicationDbContext context, IMapper mapper) : IAdmi
 
         // Aplicamos el orden y la paginación a la consulta filtrada.
         var usuarios = await query
-                .OrderBy(u => u.NombreCompleto)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
+                .OrderBy(keySelector: u => u.NombreCompleto)
+                .Skip(count: (pageNumber - 1) * pageSize)
+                .Take(count: pageSize)
                 .ToListAsync();
 
         // Mapeo de los resultados
-        var usersDto = mapper.Map<List<PerfilUsuarioDto>>(usuarios);
+        var usersDto = mapper.Map<List<PerfilUsuarioDto>>(source: usuarios);
 
         // Se devuelve el resultado con los perfiles de usuarios.
         return new PagedResultDto<PerfilUsuarioDto>
@@ -98,11 +98,11 @@ public class AdminService(IApplicationDbContext context, IMapper mapper) : IAdmi
     {
         // Verificamos que el usuario no sea el administrador.
         if (userIdToUpdate == currentAdminId)
-            throw new ValidationException("No se puede actualizar el rol del administrador.");
+            throw new ValidationException(message: "No se puede actualizar el rol del administrador.");
         // Intentamos obtener el usuario a actualizar.
-        var usuario = await context.Usuarios.FindAsync(userIdToUpdate);
+        var usuario = await context.Usuarios.FindAsync(keyValues: userIdToUpdate);
         // Si no se encontró, lanza una excepción.
-        if (usuario == null) throw new NotFoundException("No se encontró el usuario.");
+        if (usuario == null) throw new NotFoundException(message: "No se encontró el usuario.");
         // Actualizamos el rol del usuario.
         usuario.SetRol(rol: newRole);
         // Guardamos los cambios en la base de datos.
@@ -112,7 +112,7 @@ public class AdminService(IApplicationDbContext context, IMapper mapper) : IAdmi
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new ValidationException("Este usuario fue modificado por otra persona. Por favor, recarga la página e intenta de nuevo.");
+            throw new ValidationException(message: "Este usuario fue modificado por otra persona. Por favor, recarga la página e intenta de nuevo.");
         }
     }
 }

@@ -42,6 +42,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public virtual DbSet<OrderItem> OrderItems { get; set; }
     public virtual DbSet<Cart> Carts { get; set; }
     public virtual DbSet<CartItem> CartItems { get; set; }
+    public virtual DbSet<ShippingAddress> ShippingAddresses { get; set; }
+    public virtual DbSet<Review> Reviews { get; set; }
+    public virtual DbSet<WishlistItem> WishlistItems { get; set; }
 
     public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
@@ -87,6 +90,32 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
             .HasMany(c => c.Items)
             .WithOne(i => i.Cart)
             .HasForeignKey(i => i.CartId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configuración de Review
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Product)
+            .WithMany() // Assuming Product doesn't have a collection of Reviews yet
+            .HasForeignKey(r => r.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade); // Or Restrict, depending on requirements. Cascade is fine for now.
+
+        // Configuración de WishlistItem
+        modelBuilder.Entity<WishlistItem>()
+            .HasOne(w => w.Product)
+            .WithMany()
+            .HasForeignKey(w => w.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<WishlistItem>()
+            .HasOne(w => w.User)
+            .WithMany()
+            .HasForeignKey(w => w.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

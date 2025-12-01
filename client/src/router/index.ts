@@ -6,11 +6,12 @@ import { toast } from 'vue-sonner'
 const LoginView = () => import('@/views/LoginView.vue')
 const RegisterView = () => import('@/views/RegisterView.vue')
 const ProfileView = () => import('@/views/ProfileView.vue')
-const SecurityView = () => import('@/views/SecurityView.vue')
+
 const ForgotPasswordView = () => import('@/views/ForgotPasswordView.vue')
 const ResetPasswordView = () => import('@/views/ResetPasswordView.vue')
 const ShopView = () => import('@/views/ShopView.vue')
 const CheckoutView = () => import('@/views/CheckoutView.vue')
+const PaymentSuccessView = () => import('@/views/PaymentSuccessView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,9 +66,19 @@ const router = createRouter({
           component: ShopView
         },
         {
-          path: 'security',
-          name: 'security',
-          component: SecurityView
+          path: 'shop/:id',
+          name: 'product-detail',
+          component: () => import('@/views/ProductDetailView.vue')
+        },
+        {
+          path: 'orders',
+          name: 'user-orders',
+          component: () => import('@/views/UserOrdersView.vue')
+        },
+        {
+          path: 'wishlist',
+          name: 'wishlist',
+          component: () => import('@/views/WishlistView.vue')
         },
         {
           path: 'admin',
@@ -100,6 +111,11 @@ const router = createRouter({
           path: 'checkout',
           name: 'checkout',
           component: CheckoutView
+        },
+        {
+          path: 'payment-success',
+          name: 'payment-success',
+          component: PaymentSuccessView
         }
       ]
     },

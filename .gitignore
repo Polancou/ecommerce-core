@@ -417,3 +417,10 @@ FodyWeavers.xsd
 *.msm
 *.msp
 client/package-lock.json
+.vscode/settings.json
+EcommerceCore/.idea/.idea.EcommerceCore/.idea/.gitignore
+.gitignore
+EcommerceCore/.idea/.idea.EcommerceCore/.idea/encodings.xml
+EcommerceCore/.idea/.idea.EcommerceCore/.idea/indexLayout.xml
+.gitignore
+EcommerceCore/.idea/.idea.EcommerceCore/.idea/vcs.xml

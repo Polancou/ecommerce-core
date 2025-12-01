@@ -9,8 +9,8 @@ public class ActualizarRolUsuarioDtoValidator : AbstractValidator<ActualizarRolU
     {
         // Esta regla comprueba que el valor (ya sea string o número)
         // es un miembro válido y definido del enum RolUsuario.
-        RuleFor(x => x.Rol)
+        RuleFor(expression: x => x.Rol)
             .IsInEnum()
-            .WithMessage("El rol proporcionado no es válido.");
+            .WithMessage(errorMessage: "El rol proporcionado no es válido.");
     }
 }

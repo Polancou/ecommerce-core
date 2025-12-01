@@ -23,12 +23,12 @@ public class ProfileService(IApplicationDbContext context, IMapper mapper, IFile
     public async Task<PerfilUsuarioDto> GetProfileByIdAsync(int userId)
     {
         // Busca al usuario en la base de datos a través del contexto.
-        var usuario = await context.Usuarios.FindAsync(userId);
+        var usuario = await context.Usuarios.FindAsync(keyValues: userId);
         if (usuario == null)
             throw new NotFoundException(message: "Usuario no encontrado.");
 
         // Convierte la entidad de dominio a un DTO seguro para la respuesta.
-        return mapper.Map<PerfilUsuarioDto>(usuario);
+        return mapper.Map<PerfilUsuarioDto>(source: usuario);
     }
     
     /// <summary>
@@ -44,10 +44,11 @@ public class ProfileService(IApplicationDbContext context, IMapper mapper, IFile
 
         if (usuario == null)
         {
-            throw new NotFoundException("Usuario no encontrado.");
+            throw new NotFoundException(message: "Usuario no encontrado.");
         }
         // Delega la lógica de la actualización a un método en la propia entidad de dominio.
-        usuario.ActualizarPerfil(nuevoNombre: perfilDto.NombreCompleto, nuevoNumero: perfilDto.NumeroTelefono);
+        usuario.ActualizarPerfil(nuevoNombre: perfilDto.NombreCompleto,
+            nuevoNumero: perfilDto.NumeroTelefono);
 
         // Persiste los cambios en la base de datos.
         try
@@ -56,7 +57,7 @@ public class ProfileService(IApplicationDbContext context, IMapper mapper, IFile
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new ValidationException("Este usuario fue modificado por otra persona. Por favor, recarga la página e intenta de nuevo.");
+            throw new ValidationException(message: "Este usuario fue modificado por otra persona. Por favor, recarga la página e intenta de nuevo.");
         }
         
         return true;
@@ -73,19 +74,20 @@ public class ProfileService(IApplicationDbContext context, IMapper mapper, IFile
         var usuario = await context.Usuarios.FindAsync(keyValues: userId);
         if (usuario == null)
         {
-            return AuthResult.Fail("Usuario no encontrado.");
+            return AuthResult.Fail(message: "Usuario no encontrado.");
         }
 
         // Verifica si el usuario tiene una contraseña local
-        if (string.IsNullOrEmpty(usuario.PasswordHash))
+        if (string.IsNullOrEmpty(value: usuario.PasswordHash))
         {
-            throw new ValidationException("No puedes cambiar la contraseña de una cuenta de inicio de sesión externo.");
+            throw new ValidationException(message: "No puedes cambiar la contraseña de una cuenta de inicio de sesión externo.");
         }
 
         // Verifica si la contraseña antigua es correcta
-        if (!BCrypt.Net.BCrypt.Verify(text: dto.OldPassword, hash: usuario.PasswordHash))
+        if (!BCrypt.Net.BCrypt.Verify(text: dto.OldPassword,
+                hash: usuario.PasswordHash))
         {
-            throw new ValidationException("La contraseña actual es incorrecta.");
+            throw new ValidationException(message: "La contraseña actual es incorrecta.");
         }
 
         // Hashea y guarda la nueva contraseña
@@ -94,7 +96,8 @@ public class ProfileService(IApplicationDbContext context, IMapper mapper, IFile
 
         await context.SaveChangesAsync();
 
-        return AuthResult.Ok(token: null, message: "Contraseña actualizada exitosamente.");
+        return AuthResult.Ok(token: null,
+            message: "Contraseña actualizada exitosamente.");
     }
 
     /// <summary>
@@ -107,22 +110,23 @@ public class ProfileService(IApplicationDbContext context, IMapper mapper, IFile
     public async Task<string> UploadAvatarAsync(int userId, IFormFile file)
     {
         // Busca al usuario en la base de datos a través del contexto.
-        var usuario = await context.Usuarios.FindAsync(userId);
+        var usuario = await context.Usuarios.FindAsync(keyValues: userId);
         // Si no se encuentra el usuario, la operación falla.
-        if (usuario == null) throw new NotFoundException("Usuario no encontrado.");
+        if (usuario == null) throw new NotFoundException(message: "Usuario no encontrado.");
         // Borrar avatar anterior
-        if (!string.IsNullOrEmpty(usuario.AvatarUrl)) await fileStorageService.DeleteFileAsync(usuario.AvatarUrl);
+        if (!string.IsNullOrEmpty(value: usuario.AvatarUrl)) await fileStorageService.DeleteFileAsync(fileRoute: usuario.AvatarUrl);
         // Genera un nombre de archivo único para evitar colisiones
-        var fileExtension = Path.GetExtension(file.FileName);
+        var fileExtension = Path.GetExtension(path: file.FileName);
         var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
         // Usa el servicio de almacenamiento para guardar el archivo
         string fileUrl;
         await using (var stream = file.OpenReadStream())
         {
-            fileUrl = await fileStorageService.SaveFileAsync(stream, uniqueFileName);
+            fileUrl = await fileStorageService.SaveFileAsync(fileStream: stream,
+                fileName: uniqueFileName);
         }
         // Actualiza la entidad Usuario con la nueva URL
-        usuario.SetAvatarUrl(fileUrl);
+        usuario.SetAvatarUrl(nuevoUrl: fileUrl);
         // Guarda los cambios en la base de datos
         try
         {
@@ -130,7 +134,7 @@ public class ProfileService(IApplicationDbContext context, IMapper mapper, IFile
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new ValidationException("Este usuario fue modificado por otra persona. Por favor, recarga la página e intenta de nuevo.");
+            throw new ValidationException(message: "Este usuario fue modificado por otra persona. Por favor, recarga la página e intenta de nuevo.");
         }
 
         // Devuelve la URL al controlador (y al frontend)
