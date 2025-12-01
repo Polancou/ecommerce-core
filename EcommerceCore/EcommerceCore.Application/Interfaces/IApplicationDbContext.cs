@@ -15,6 +15,8 @@ public interface IApplicationDbContext
     DbSet<Cart> Carts { get; }
     DbSet<CartItem> CartItems { get; }
     DbSet<ShippingAddress> ShippingAddresses { get; }
+    DbSet<Review> Reviews { get; }
+    DbSet<WishlistItem> WishlistItems { get; }
 
     // Expone la habilidad de guardar cambios
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

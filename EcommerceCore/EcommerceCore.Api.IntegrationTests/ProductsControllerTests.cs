@@ -30,8 +30,9 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
-        products.Should().NotBeNull();
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResult<ProductDto>>();
+        result.Should().NotBeNull();
+        result!.Items.Should().NotBeNull();
     }
 
     [Fact]
@@ -104,7 +105,8 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
             adminToken);
 
         // Create product first
-        var createDto = new CreateProductDto { Name = "P1", Description = "D", Price = 10, Stock = 5, ImageUrl = "u", Category = "C" };
+        var createDto = new CreateProductDto
+            { Name = "P1", Description = "D", Price = 10, Stock = 5, ImageUrl = "u", Category = "C" };
         var createResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products",
             createDto);
         var createdProduct = await createResponse.Content.ReadFromJsonAsync<ProductDto>();
@@ -125,7 +127,7 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        
+
         // Verify update
         var getResponse = await _client.GetAsync($"/api/{ApiVersion}/products/{createdProduct.Id}");
         var updatedProduct = await getResponse.Content.ReadFromJsonAsync<ProductDto>();
@@ -144,7 +146,8 @@ public class ProductsControllerTests : IClassFixture<TestApiFactory>, IAsyncLife
             adminToken);
 
         // Create product first
-        var createDto = new CreateProductDto { Name = "P1", Description = "D", Price = 10, Stock = 5, ImageUrl = "u", Category = "C" };
+        var createDto = new CreateProductDto
+            { Name = "P1", Description = "D", Price = 10, Stock = 5, ImageUrl = "u", Category = "C" };
         var createResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/products",
             createDto);
         var createdProduct = await createResponse.Content.ReadFromJsonAsync<ProductDto>();

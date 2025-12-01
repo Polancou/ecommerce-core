@@ -12,16 +12,13 @@ namespace EcommerceCore.Api.Controllers;
 public class ProductsController(IProductService productService) : ControllerBase
 {
     /// <summary>
-    /// Obtiene la lista completa de productos.
+    /// Obtiene la lista completa de productos con filtros.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<PaginatedResult<ProductDto>>> GetProducts([FromQuery] string? search,
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<ActionResult<PaginatedResult<ProductDto>>> GetProducts([FromQuery] ProductFilterDto filter)
     {
         // Obtiene todos los productos de forma asíncrona, aplicando filtros de búsqueda y paginación.
-        var products = await productService.GetAllAsync(searchTerm: search,
-            page: page,
-            pageSize: pageSize);
+        var products = await productService.GetAllAsync(filter);
         return Ok(value: products); // Retorna la lista paginada de productos con un código 200 OK.
     }
 

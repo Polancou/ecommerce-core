@@ -66,9 +66,19 @@ const router = createRouter({
           component: ShopView
         },
         {
+          path: 'shop/:id',
+          name: 'product-detail',
+          component: () => import('@/views/ProductDetailView.vue')
+        },
+        {
           path: 'orders',
           name: 'user-orders',
           component: () => import('@/views/UserOrdersView.vue')
+        },
+        {
+          path: 'wishlist',
+          name: 'wishlist',
+          component: () => import('@/views/WishlistView.vue')
         },
         {
           path: 'admin',

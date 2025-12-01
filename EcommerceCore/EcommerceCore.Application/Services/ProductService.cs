@@ -12,22 +12,36 @@ public class ProductService(IApplicationDbContext context, IFileStorageService f
     : IProductService
 {
     /// <summary>
-    /// Obtiene una lista paginada de productos, con opción de búsqueda.
+    /// Obtiene una lista paginada de productos, con opción de búsqueda y filtrado.
     /// </summary>
-    /// <param name="searchTerm">Término de búsqueda opcional para filtrar por nombre o descripción.</param>
-    /// <param name="page">Número de página actual (por defecto 1).</param>
-    /// <param name="pageSize">Tamaño de la página (número de elementos por página, por defecto 10).</param>
-    /// <returns>Un objeto <see cref="PaginatedResult{ProductDto}"/> que contiene la lista de productos, el total de elementos y la información de paginación.</returns>
-    public async Task<PaginatedResult<ProductDto>> GetAllAsync(string? searchTerm = null, int page = 1,
-        int pageSize = 10)
+    /// <param name="filter">DTO con los criterios de filtrado.</param>
+    /// <returns>Un objeto <see cref="PaginatedResult{ProductDto}"/> que contiene la lista de productos.</returns>
+    public async Task<PaginatedResult<ProductDto>> GetAllAsync(ProductFilterDto filter)
     {
         // Inicia la consulta sobre la colección de productos.
         var query = context.Products.AsQueryable();
 
         // Aplica filtro de búsqueda si se proporciona un término.
-        if (!string.IsNullOrWhiteSpace(value: searchTerm))
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
-            query = query.Where(predicate: p => p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm));
+            query = query.Where(p => p.Name.Contains(filter.SearchTerm) || p.Description.Contains(filter.SearchTerm));
+        }
+
+        // Filter by Category
+        if (!string.IsNullOrWhiteSpace(filter.Category))
+        {
+            query = query.Where(p => p.Category == filter.Category);
+        }
+
+        // Filter by Price Range
+        if (filter.MinPrice.HasValue)
+        {
+            query = query.Where(p => p.Price >= filter.MinPrice.Value);
+        }
+
+        if (filter.MaxPrice.HasValue)
+        {
+            query = query.Where(p => p.Price <= filter.MaxPrice.Value);
         }
 
         // Cuenta el total de elementos que coinciden con la consulta.
@@ -35,9 +49,9 @@ public class ProductService(IApplicationDbContext context, IFileStorageService f
 
         // Aplica paginación y proyecta los resultados a DTOs.
         var items = await query
-            .Skip(count: (page - 1) * pageSize) // Salta los elementos de páginas anteriores.
-            .Take(count: pageSize) // Toma solo los elementos de la página actual.
-            .ProjectTo<ProductDto>(configuration: mapper.ConfigurationProvider) // Proyecta la entidad a DTO usando AutoMapper.
+            .Skip((filter.Page - 1) * filter.PageSize) // Salta los elementos de páginas anteriores.
+            .Take(filter.PageSize) // Toma solo los elementos de la página actual.
+            .ProjectTo<ProductDto>(mapper.ConfigurationProvider) // Proyecta la entidad a DTO usando AutoMapper.
             .ToListAsync(); // Ejecuta la consulta y obtiene la lista.
 
         // Retorna el resultado paginado.
@@ -45,8 +59,8 @@ public class ProductService(IApplicationDbContext context, IFileStorageService f
         {
             Items = items,
             TotalCount = totalCount,
-            Page = page,
-            PageSize = pageSize
+            Page = filter.Page,
+            PageSize = filter.PageSize
         };
     }
 

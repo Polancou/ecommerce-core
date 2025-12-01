@@ -175,3 +175,63 @@ export interface ShippingAddress {
   postalCode: string;
   country: string;
 }
+
+// DTOs para Reseñas
+export interface ReviewDto {
+  id: number;
+  productId: number;
+  userId: number;
+  userName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+export interface CreateReviewDto {
+  productId: number;
+  rating: number;
+  comment: string;
+}
+
+// DTOs para Lista de Deseos
+export interface WishlistItemDto {
+  id: number;
+  productId: number;
+  productName: string;
+  productPrice: number;
+  productImageUrl?: string;
+  addedAt: string;
+}
+
+// DTO para Filtros de Productos
+export interface ProductFilterDto {
+  searchTerm?: string;
+  category?: string;
+  minPrice?: number | undefined;
+  maxPrice?: number | undefined;
+  page: number;
+  pageSize: number;
+}
+
+// DTOs para Analytics
+export interface AnalyticsDto {
+  totalRevenue: number;
+  totalOrders: number;
+  totalProducts: number;
+  totalUsers: number;
+  topSellingProducts: TopProductDto[];
+  monthlySales: MonthlySalesDto[];
+}
+
+export interface TopProductDto {
+  productId: number;
+  productName: string;
+  quantitySold: number;
+  revenue: number;
+}
+
+export interface MonthlySalesDto {
+  month: string;
+  revenue: number;
+  orderCount: number;
+}

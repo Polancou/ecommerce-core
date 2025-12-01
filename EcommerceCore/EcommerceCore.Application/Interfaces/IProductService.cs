@@ -6,13 +6,11 @@ namespace EcommerceCore.Application.Interfaces;
 public interface IProductService
 {
     /// <summary>
-    /// Obtiene todos los productos con paginación y un término de búsqueda opcional.
+    /// Obtiene todos los productos con filtros avanzados.
     /// </summary>
-    /// <param name="searchTerm">Término de búsqueda opcional para filtrar productos.</param>
-    /// <param name="page">Número de página actual.</param>
-    /// <param name="pageSize">Cantidad de elementos por página.</param>
+    /// <param name="filter">DTO con los criterios de filtrado.</param>
     /// <returns>Un resultado paginado de objetos ProductDto.</returns>
-    Task<PaginatedResult<ProductDto>> GetAllAsync(string? searchTerm = null, int page = 1, int pageSize = 10);
+    Task<PaginatedResult<ProductDto>> GetAllAsync(ProductFilterDto filter);
 
     /// <summary>
     /// Obtiene un producto por su identificador único.

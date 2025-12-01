@@ -1,3 +1,4 @@
+using AutoMapper;
 using EcommerceCore.Application.DTOs;
 using EcommerceCore.Application.Interfaces;
 using EcommerceCore.Application.Services;
@@ -11,12 +12,16 @@ namespace EcommerceCore.Application.UnitTests;
 public class OrderServiceTests
 {
     private readonly Mock<IApplicationDbContext> _mockDbContext;
+    private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IEmailService> _mockEmailService;
     private readonly OrderService _orderService;
 
     public OrderServiceTests()
     {
         _mockDbContext = new Mock<IApplicationDbContext>();
-        _orderService = new OrderService(_mockDbContext.Object);
+        _mockMapper = new Mock<IMapper>();
+        _mockEmailService = new Mock<IEmailService>();
+        _orderService = new OrderService(_mockDbContext.Object, _mockMapper.Object, _mockEmailService.Object);
     }
 
     [Fact]
@@ -32,6 +37,8 @@ public class OrderServiceTests
                 200) // Other user
         };
         _mockDbContext.Setup(c => c.Orders).ReturnsDbSet(orders);
+        _mockMapper.Setup(m => m.Map<IEnumerable<OrderDto>>(It.IsAny<List<Order>>()))
+            .Returns(new List<OrderDto> { new() { TotalAmount = 100 } });
 
         // Act
         var result = await _orderService.GetUserOrdersAsync(userId);
@@ -51,7 +58,7 @@ public class OrderServiceTests
         _mockDbContext.Setup(c => c.Carts).ReturnsDbSet(carts);
 
         // Act
-        Func<Task> act = async () => await _orderService.CreateOrderAsync(userId);
+        Func<Task> act = async () => await _orderService.CreateOrderAsync(userId, new ShippingAddressDto());
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("El carrito está vacío.");
@@ -92,8 +99,17 @@ public class OrderServiceTests
         _mockDbContext.Setup(c => c.Carts).ReturnsDbSet(carts);
         _mockDbContext.Setup(c => c.Orders).ReturnsDbSet(new List<Order>());
 
+        var user = new Usuario("Test User", "test@example.com", "1234567890", RolUsuario.User);
+        user.GetType().GetProperty("Id")!.SetValue(user, userId);
+
+        _mockDbContext.Setup(c => c.Usuarios).ReturnsDbSet(new List<Usuario> { user });
+        _mockDbContext.Setup(c => c.Usuarios.FindAsync(userId)).ReturnsAsync(user);
+
+        _mockMapper.Setup(m => m.Map<OrderDto>(It.IsAny<Order>()))
+            .Returns(new OrderDto { TotalAmount = 200 });
+
         // Act
-        var result = await _orderService.CreateOrderAsync(userId);
+        var result = await _orderService.CreateOrderAsync(userId, new ShippingAddressDto());
 
         // Assert
         result.Should().NotBeNull();

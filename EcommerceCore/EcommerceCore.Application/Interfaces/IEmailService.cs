@@ -17,4 +17,13 @@ public interface IEmailService
     /// <param name="userName">Nombre del usuario (para {{UserName}}).</param>
     /// <param name="resetLink">El enlace de reseteo (para {{Link}}).</param>
     Task SendPasswordResetEmailAsync(string toEmail, string userName, string resetLink);
+
+    /// <summary>
+    /// Envía el correo de confirmación de pedido.
+    /// </summary>
+    /// <param name="toEmail">Email del destinatario.</param>
+    /// <param name="userName">Nombre del usuario.</param>
+    /// <param name="orderId">ID del pedido.</param>
+    /// <param name="totalAmount">Monto total del pedido.</param>
+    Task SendOrderConfirmationEmailAsync(string toEmail, string userName, int orderId, decimal totalAmount);
 }

@@ -61,14 +61,31 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         var (token, productId) = await SetupUserAndProductAsync();
 
         // Add item to cart
-        await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
+        var addItemResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
             new AddToCartDto { ProductId = productId, Quantity = 2 });
+        addItemResponse.EnsureSuccessStatusCode();
 
         // Act
-        var response = await _client.PostAsync($"/api/{ApiVersion}/orders",
-            null);
+        // Act
+        var address = new ShippingAddressDto
+        {
+            Name = "Test User",
+            AddressLine1 = "123 Test St",
+            City = "Test City",
+            State = "TS",
+            PostalCode = "12345",
+            Country = "Test Country"
+        };
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/orders", address);
 
         // Assert
+        if (response.StatusCode != HttpStatusCode.Created)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            // Force failure with error message
+            response.StatusCode.Should().Be(HttpStatusCode.Created, $"Error: {error}");
+        }
+
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var order = await response.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
         order.Should().NotBeNull();
@@ -84,8 +101,17 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         // Cart is empty by default
 
         // Act
-        var response = await _client.PostAsync($"/api/{ApiVersion}/orders",
-            null);
+        // Act
+        var address = new ShippingAddressDto
+        {
+            Name = "Test User",
+            AddressLine1 = "123 Test St",
+            City = "Test City",
+            State = "TS",
+            PostalCode = "12345",
+            Country = "Test Country"
+        };
+        var response = await _client.PostAsJsonAsync($"/api/{ApiVersion}/orders", address);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -100,8 +126,16 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         // Create an order first
         await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
             new AddToCartDto { ProductId = productId, Quantity = 1 });
-        await _client.PostAsync($"/api/{ApiVersion}/orders",
-            null);
+        var address = new ShippingAddressDto
+        {
+            Name = "Test User",
+            AddressLine1 = "123 Test St",
+            City = "Test City",
+            State = "TS",
+            PostalCode = "12345",
+            Country = "Test Country"
+        };
+        await _client.PostAsJsonAsync($"/api/{ApiVersion}/orders", address);
 
         // Act
         var response = await _client.GetAsync($"/api/{ApiVersion}/orders");
@@ -121,8 +155,16 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         // Create order as User
         await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
             new AddToCartDto { ProductId = productId, Quantity = 1 });
-        var createResponse = await _client.PostAsync($"/api/{ApiVersion}/orders",
-            null);
+        var address = new ShippingAddressDto
+        {
+            Name = "Test User",
+            AddressLine1 = "123 Test St",
+            City = "Test City",
+            State = "TS",
+            PostalCode = "12345",
+            Country = "Test Country"
+        };
+        var createResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/orders", address);
         var order = await createResponse.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
 
         // Login as Admin
@@ -155,8 +197,16 @@ public class OrdersControllerTests : IClassFixture<TestApiFactory>, IAsyncLifeti
         // Create order
         await _client.PostAsJsonAsync($"/api/{ApiVersion}/cart/items",
             new AddToCartDto { ProductId = productId, Quantity = 1 });
-        var createResponse = await _client.PostAsync($"/api/{ApiVersion}/orders",
-            null);
+        // Act
+        var address = new ShippingAddressDto
+        {
+            AddressLine1 = "123 Test St",
+            City = "Test City",
+            State = "TS",
+            PostalCode = "12345",
+            Country = "Test Country"
+        };
+        var createResponse = await _client.PostAsJsonAsync($"/api/{ApiVersion}/orders", address);
         var order = await createResponse.Content.ReadFromJsonAsync<OrderDto>(_jsonOptions);
 
         // Act (Try to update as User)

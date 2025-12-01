@@ -21,8 +21,10 @@ public class SmtpSettings
 public class SmtpEmailService(IConfiguration configuration) : IEmailService
 {
     // Configuración de Mailtrap
-    private readonly SmtpSettings _settings = configuration.GetSection(key: "SmtpSettings").Get<SmtpSettings>() ?? throw new InvalidOperationException(message: "SmtpSettings no configurado");
-    
+    private readonly SmtpSettings _settings = configuration.GetSection(key: "SmtpSettings").Get<SmtpSettings>() ??
+                                              throw new InvalidOperationException(
+                                                  message: "SmtpSettings no configurado");
+
     // Instancia del cliente SMTP
     public async Task SendVerificationEmailAsync(string toEmail, string userName, string verificationLink)
     {
@@ -49,20 +51,46 @@ public class SmtpEmailService(IConfiguration configuration) : IEmailService
     public async Task SendPasswordResetEmailAsync(string toEmail, string userName, string resetLink)
     {
         var emailSubject = "Restablece tu contraseña de EcommerceCore";
-        
-        var templatePath = Path.Combine(path1: AppContext.BaseDirectory,
-            path2: "EmailTemplates",
-            path3: "PasswordResetEmail.html");
-        var htmlBody = await File.ReadAllTextAsync(path: templatePath);
-        
-        htmlBody = htmlBody.Replace(oldValue: "{{UserName}}",
-            newValue: userName);
-        htmlBody = htmlBody.Replace(oldValue: "{{Link}}",
-            newValue: resetLink);
 
-        await SendEmailInternalAsync(toEmail: toEmail,
-            subject: emailSubject,
-            htmlBody: htmlBody);
+        var templatePath = Path.Combine(AppContext.BaseDirectory,
+            "EmailTemplates",
+            "PasswordResetEmail.html");
+        var htmlBody = await File.ReadAllTextAsync(templatePath);
+
+        htmlBody = htmlBody.Replace("{{UserName}}",
+            userName);
+        htmlBody = htmlBody.Replace("{{Link}}",
+            resetLink);
+
+        await SendEmailInternalAsync(toEmail,
+            emailSubject,
+            htmlBody);
+    }
+
+    public async Task SendOrderConfirmationEmailAsync(string toEmail, string userName, int orderId, decimal totalAmount)
+    {
+        var emailSubject = $"Confirmación de Pedido #{orderId}";
+
+        var templatePath = Path.Combine(AppContext.BaseDirectory,
+            "EmailTemplates",
+            "OrderConfirmationEmail.html");
+
+        // Fallback if template doesn't exist (e.g. in tests)
+        string htmlBody;
+        if (File.Exists(templatePath))
+        {
+            htmlBody = await File.ReadAllTextAsync(templatePath);
+            htmlBody = htmlBody.Replace("{{UserName}}", userName)
+                .Replace("{{OrderId}}", orderId.ToString())
+                .Replace("{{TotalAmount}}", totalAmount.ToString("F2"));
+        }
+        else
+        {
+            htmlBody =
+                $"<h1>Gracias por tu compra, {userName}!</h1><p>Pedido #{orderId}</p><p>Total: ${totalAmount:F2}</p>";
+        }
+
+        await SendEmailInternalAsync(toEmail, emailSubject, htmlBody);
     }
 
     private async Task SendEmailInternalAsync(string toEmail, string subject, string htmlBody)

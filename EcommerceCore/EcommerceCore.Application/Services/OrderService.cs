@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceCore.Application.Services;
 
-public class OrderService(IApplicationDbContext context, IMapper mapper) : IOrderService
+public class OrderService(IApplicationDbContext context, IMapper mapper, IEmailService emailService) : IOrderService
 {
     /// <summary>
     /// Obtiene todos los pedidos de un usuario específico.
@@ -17,12 +17,12 @@ public class OrderService(IApplicationDbContext context, IMapper mapper) : IOrde
     {
         // Busca los pedidos del usuario, incluyendo los ítems de cada pedido.
         var orders = await context.Orders
-            .Include(navigationPropertyPath: o => o.Items)
-            .Where(predicate: o => o.UserId == userId)
+            .Include(o => o.Items)
+            .Where(o => o.UserId == userId)
             .ToListAsync();
 
         // Mapea la lista de entidades Order a DTOs de Order.
-        return mapper.Map<IEnumerable<OrderDto>>(source: orders);
+        return mapper.Map<IEnumerable<OrderDto>>(orders);
     }
 
     /// <summary>
@@ -33,11 +33,11 @@ public class OrderService(IApplicationDbContext context, IMapper mapper) : IOrde
     {
         // Busca todos los pedidos, incluyendo los ítems de cada pedido.
         var orders = await context.Orders
-            .Include(navigationPropertyPath: o => o.Items)
+            .Include(o => o.Items)
             .ToListAsync();
 
         // Mapea la lista de entidades Order a DTOs de Order.
-        return mapper.Map<IEnumerable<OrderDto>>(source: orders);
+        return mapper.Map<IEnumerable<OrderDto>>(orders);
     }
 
     /// <summary>
@@ -52,17 +52,17 @@ public class OrderService(IApplicationDbContext context, IMapper mapper) : IOrde
     {
         // Busca el pedido por ID, incluyendo sus ítems.
         var order = await context.Orders
-            .Include(navigationPropertyPath: o => o.Items)
-            .FirstOrDefaultAsync(predicate: o => o.Id == id);
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == id);
 
         // Si el pedido no existe, retorna null.
         if (order == null) return null;
         // Verifica si el usuario tiene permiso para ver el pedido (debe ser el propietario o un administrador).
         if (order.UserId != userId && !isAdmin)
-            throw new UnauthorizedAccessException(message: "No tienes permiso para ver este pedido.");
+            throw new UnauthorizedAccessException("No tienes permiso para ver este pedido.");
 
         // Mapea la entidad Order a un DTO de Order.
-        return mapper.Map<OrderDto>(source: order);
+        return mapper.Map<OrderDto>(order);
     }
 
     /// <summary>
@@ -76,51 +76,67 @@ public class OrderService(IApplicationDbContext context, IMapper mapper) : IOrde
     {
         // Obtiene el carrito del usuario, incluyendo sus ítems y los productos asociados.
         var cart = await context.Carts
-            .Include(navigationPropertyPath: c => c.Items)
-            .ThenInclude(navigationPropertyPath: i => i.Product)
-            .FirstOrDefaultAsync(predicate: c => c.UserId == userId);
+            .Include(c => c.Items)
+            .ThenInclude(i => i.Product)
+            .FirstOrDefaultAsync(c => c.UserId == userId);
 
         // Si el carrito está vacío o no existe, lanza una excepción.
         if (cart == null || !cart.Items.Any())
         {
-            throw new InvalidOperationException(message: "El carrito está vacío.");
+            throw new InvalidOperationException("El carrito está vacío.");
         }
 
         // Crea una nueva instancia de Order con el ID del usuario y el total del carrito.
-        var order = new Order(userId: userId,
-            totalAmount: cart.Items.Sum(selector: i => i.Quantity * i.Product.Price));
+        var order = new Order(userId,
+            cart.Items.Sum(i => i.Quantity * i.Product.Price));
 
         // Establece la dirección de envío del pedido.
         order.SetShippingAddress(
-            addressLine1: shippingAddress.AddressLine1,
-            addressLine2: shippingAddress.AddressLine2,
-            city: shippingAddress.City,
-            state: shippingAddress.State,
-            postalCode: shippingAddress.PostalCode,
-            country: shippingAddress.Country
+            shippingAddress.AddressLine1,
+            shippingAddress.AddressLine2,
+            shippingAddress.City,
+            shippingAddress.State,
+            shippingAddress.PostalCode,
+            shippingAddress.Country
         );
 
         // Agrega los ítems del carrito al pedido y actualiza el stock de los productos.
         foreach (var item in cart.Items)
         {
-            order.AddItem(item: new OrderItem(productId: item.ProductId,
-                productName: item.Product.Name,
-                unitPrice: item.Product.Price,
-                quantity: item.Quantity));
+            order.AddItem(new OrderItem(item.ProductId,
+                item.Product.Name,
+                item.Product.Price,
+                item.Quantity));
 
             // Actualiza el stock del producto.
-            item.Product.UpdateStock(quantity: item.Product.Stock - item.Quantity);
+            item.Product.UpdateStock(-item.Quantity);
         }
 
         // Agrega el nuevo pedido al contexto y elimina el carrito.
-        context.Orders.Add(entity: order);
-        context.Carts.Remove(entity: cart); // Vacía el carrito después de crear el pedido.
+        context.Orders.Add(order);
+        context.Carts.Remove(cart); // Vacía el carrito después de crear el pedido.
 
         // Guarda los cambios en la base de datos.
         await context.SaveChangesAsync();
 
+        // Send confirmation email
+        var user = await context.Usuarios.FindAsync(userId);
+        if (user != null)
+        {
+            try
+            {
+                await emailService.SendOrderConfirmationEmailAsync(user.Email, user.NombreCompleto, order.Id,
+                    order.TotalAmount);
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the order creation
+                Console.WriteLine($"Error sending email: {ex.Message}");
+            }
+        }
+
         // Mapea la entidad Order a un DTO de Order.
-        return mapper.Map<OrderDto>(source: order);
+        return mapper.Map<OrderDto>(order);
     }
 
     /// <summary>
